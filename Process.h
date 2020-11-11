@@ -37,6 +37,8 @@
 #include "ExRootAnalysis/ExRootResult.h"
 #include "ExRootAnalysis/ExRootUtilities.h"
 
+#include "TEfficiency.h"
+
 // Plots
 
 TClonesArray * bEvent;
@@ -57,20 +59,47 @@ TH1D * h_Jet_Pt;
 TH1D * h_ZZ_Mass;
 
 //my graphs
+
+//pseudorapidity and transverse momentum
 TH1D * h_mu_pT;
 TH1D * h_mu_eta;
 TH1D * h_Jet_eta; 
 TH1D * h_Z_eta; 
 TH1D * h_nu_eta; 
 
+//transverse energy
 TH1D * h_mu_Et;
 TH1D * h_Jet_Et;
 TH1D * h_Z_Et; 
 TH1D * h_nu_Et;
 
+//Higgs graphs
 TH1D * h_Higgs_pT;
 TH1D * h_Higgs_eta;
 TH1D * h_Higgs_Et;
+
+//4mu event graphs
+TH1D * h4mu_mu_pT;
+TH1D * h4mu_mu_Et;
+TH1D * h4mu_nu_Et;
+TH1D * h4mu_mu_eta;
+TH1D * h4mu_nu_eta; 
+
+//acceptance plots
+TEfficiency * e_eta;
+TEfficiency * e_Et;
+TEfficiency * e_pT;
+TEfficiency * e4mu_eta;
+TEfficiency * e4mu_Et;
+TEfficiency * e4mu_pT;
+
+//plotting variables against each other
+TEfficiency * e_mu_pT_eta;
+
+//truejet histograms
+TH1D * h_trueJet_Et;
+TH1D * h_trueJet_eta;
+TH1D * h_trueJet_Pt;
 
 ExRootTreeReader * InitReader(const TString FilePath);
 
