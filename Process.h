@@ -93,6 +93,14 @@ TEfficiency * e4mu_eta;
 TEfficiency * e4mu_Et;
 TEfficiency * e4mu_pT;
 
+TEfficiency * e_H_eta;
+TEfficiency * e_H_Et;
+TEfficiency * e_H_pT;
+
+TEfficiency * e4mu_H_eta;
+TEfficiency * e4mu_H_Et;
+TEfficiency * e4mu_H_pT;
+
 //plotting variables against each other
 TEfficiency * e_mu_pT_eta;
 

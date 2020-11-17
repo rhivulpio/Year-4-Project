@@ -1,7 +1,7 @@
 
 #include "Process.h"
 
-bool Debug = false;
+bool Debug = true;
 
 //defining the selection criteria for the muons
 bool MuonCut(GenParticle * muon){
@@ -95,21 +95,27 @@ int main(int argc, char* argv[]) {
 
     //Acceptance plots
         //for all events
-    e_eta = new TEfficiency("e_eta", "Plot of Acceptance against Pseudorapidity; Pseudorapidity; Acceptance", 100, -10, 10);
-    e_Et = new TEfficiency("e_Et", "Plot of Acceptance against Transverse Energy; Transverse Energy; Acceptance", 100, -100, 100);
-    e_pT = new TEfficiency("e_pT", "Plot of Acceptance against Transverse Momentum; Transverse Momentum; Acceptance", 100, -100, 100);
-        //for 4mu events only
-    e4mu_eta = new TEfficiency("e4mu_eta", "Plot of Acceptance against Pseudorapidity; Pseudorapidity; Acceptance", 100, -10, 10);
-    e4mu_Et = new TEfficiency("e4mu_Et", "Plot of Acceptance against Transverse Energy; Transverse Energy; Acceptance", 100, -100, 100);
-    e4mu_pT = new TEfficiency("e4mu_pT", "Plot of Acceptance against Transverse Momentum; Transverse Momentum; Acceptance", 100, -100, 100);
+    e_eta = new TEfficiency("e_eta", "Plot of Acceptance against Pseudorapidity of Muons; Muon Pseudorapidity; Acceptance", 100, -10, 10);
+    e_Et = new TEfficiency("e_Et", "Plot of Acceptance against Transverse Energy of Muons; Muon Transverse Energy; Acceptance", 100, -100, 100);
+    e_pT = new TEfficiency("e_pT", "Plot of Acceptance against Transverse Momentum of Muons; Muon Transverse Momentum; Acceptance", 100, -100, 100);
+    e_H_eta = new TEfficiency("e_H_eta", "Plot of Acceptance against Pseudorapidity of Higgs (cuts); Higgs Pseudorapidity; Acceptance", 100, -10, 10);
+    e_H_Et = new TEfficiency("e_H_Et", "Plot of Acceptance against Transverse Energy of Higgs (cuts); Higgs Transverse Energy; Acceptance", 100, -100, 100);
+    e_H_pT = new TEfficiency("e_H_pT", "Plot of Acceptance against Transverse Momentum of Higgs (cuts); Higgs Transverse Momentum; Acceptance", 100, -100, 100);
+    
+    e4mu_eta = new TEfficiency("e4mu_eta", "Plot of Acceptance against Pseudorapidity of Muons; Muon Pseudorapidity; Acceptance", 100, -10, 10);
+    e4mu_Et = new TEfficiency("e4mu_Et", "Plot of Acceptance against Transverse Energy of Muons; Muon Transverse Energy; Acceptance", 100, -100, 100);
+    e4mu_pT = new TEfficiency("e4mu_pT", "Plot of Acceptance against Transverse Momentum of Muons; Muon Transverse Momentum; Acceptance", 100, -100, 100);
+    e4mu_H_eta = new TEfficiency("e4mu_H_eta", "Plot of Acceptance against Pseudorapidity of Higgs; Higgs Pseudorapidity; Acceptance", 100, -10, 10);
+    e4mu_H_Et = new TEfficiency("e4mu_H_Et", "Plot of Acceptance against Transverse Energy of Higgs; Higgs Transverse Energy; Acceptance", 100, -100, 100);
+    e4mu_H_pT = new TEfficiency("e4mu_H_pT", "Plot of Acceptance against Transverse Momentum of Higgs; Higgs Transverse Momentum; Acceptance", 100, -100, 100);
 
     //Plotting different variables against each other
     e_mu_pT_eta = new TEfficiency("e_mu_pT_eta", "; Muon Pseudorapidity; Muon Transverse Momentum [GeV]", 100, -10, 10);
 
     //true jet histograms
-    h_trueJet_Et = new TH1D("h_trueJet_Et","; True Jet Transverse Energy [GeV]; Events", 100, 0, 180);
-    h_trueJet_eta = new TH1D("h_trueJet_eta","; True Jet Pseudorapidity; Events", 100, -10, 10);
-    h_trueJet_Pt = new TH1D("h_trueJet_Pt","; True Jet Transverse Momentum [GeV]; Events", 100, 0, 200);
+    h_trueJet_Et = new TH1D("h_trueJet_Et","; True Jet Transverse Energy [GeV]; Events", 200, 0, 180);
+    h_trueJet_eta = new TH1D("h_trueJet_eta","; True Jet Pseudorapidity; Events", 200, -6, 0);
+    h_trueJet_Pt = new TH1D("h_trueJet_Pt","; True Jet Transverse Momentum [GeV]; Events", 200, 0, 200);
     //------------------------------------
 
     // Run the selection
@@ -158,6 +164,13 @@ int main(int argc, char* argv[]) {
     e4mu_eta->Write();
     e4mu_Et->Write();
     e4mu_pT->Write();
+
+    e_H_eta->Write();
+    e_H_Et->Write();
+    e_H_pT->Write();
+    e4mu_H_eta->Write();
+    e4mu_H_Et->Write();
+    e4mu_H_pT->Write();
 
     e_mu_pT_eta->Write();
 
@@ -237,8 +250,8 @@ void Process(ExRootTreeReader * treeReader) {
 
             Jet * jet = (Jet*) bJet->At(i);
 
-            //if(Debug) std::cout << "Jet " << i << " pT = " << jet1->PT << " eta = " << jet1->Eta << " phi = " << jet1->Phi << 
-            //" mass = " << jet1->Mass << " flavour = " << jet1->Flavor << std::endl;
+            if(Debug) std::cout << "Jet " << i << " pT = " << jet->PT << " eta = " << jet->Eta << " phi = " << jet->Phi << 
+            " mass = " << jet->Mass << " flavour = " << jet->Flavor << std::endl;
 
             TLorentzVector Vec_Jet;
             Vec_Jet.SetPtEtaPhiM(jet->PT,jet->Eta,jet->Phi,jet->Mass);
@@ -249,17 +262,32 @@ void Process(ExRootTreeReader * treeReader) {
                 h_Jet_Et->Fill(TMath::Sqrt(Vec_Jet.Pt() * Vec_Jet.Pt() + Vec_Jet.M() * Vec_Jet.M()), Event_Weight);
             }
 
+            TLorentzVector Vec_Lep;
+
             bool truejet = true; //flag to check if the jet is a true jet or not
-            if(Vec_Jet.M() < 0.2){
-                truejet = false;
+
+            for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) {
+
+                GenParticle * lep = (GenParticle*) bTruthLepton->At(i);
+
+                Vec_Lep.SetPtEtaPhiM(lep->PT,lep->Eta,lep->Phi,lep->Mass);
+
+                double deltaR = ((Vec_Jet.Phi() - Vec_Lep.Phi()) * (Vec_Jet.Phi() - Vec_Lep.Phi())) + ((Vec_Jet.Eta() - Vec_Lep.Eta()) * (Vec_Jet.Eta() - Vec_Lep.Eta()));
+
+                if(deltaR < 0.4) truejet = false;
+
+                if(Debug) std::cout << "  DeltaR (Lepton " << i << ") = " << deltaR << std::endl;
+
             }
+
+            if(Debug) std::cout << "  Is it a true jet? " << (truejet ? "yes" : "no") << std::endl;
         
         //jet loop again but for only true jets
 
         if(truejet){
             
-            if(Debug) std::cout << "Jet " << i << " pT = " << jet->PT << " eta = " << jet->Eta << " phi = " << jet->Phi << 
-            " mass = " << jet->Mass << " flavour = " << jet->Flavor << std::endl;
+            //if(Debug) std::cout << "Jet " << i << " pT = " << jet->PT << " eta = " << jet->Eta << " phi = " << jet->Phi << 
+            //" mass = " << jet->Mass << " flavour = " << jet->Flavor << std::endl;
 
             if(JetCut(jet)){
                 h_trueJet_Pt->Fill(Vec_Jet.Pt(), Event_Weight);
@@ -285,7 +313,6 @@ void Process(ExRootTreeReader * treeReader) {
             if(Debug) std::cout << "Lepton " << i << " PID = " << lep->PID << " pT = " << lep->PT << 
             " eta = " << lep->Eta << " phi = " << lep->Phi << " mass = " << lep->Mass << 
             std::endl;
-
             
             TLorentzVector Vec_Lepton1;
             Vec_Lepton1.SetPtEtaPhiM(lep->PT,lep->Eta,lep->Phi,lep->Mass);
@@ -326,6 +353,21 @@ void Process(ExRootTreeReader * treeReader) {
             if(abs(lep->PID == 13 && !MuonCut(lep))){
                 event4mu_seen = false;
             }
+
+            //boson loop inside lepton loop in order to plot acceptance as a function of Higgs properties
+            for(int i = 0; i <bTruthWZ->GetEntriesFast(); ++i){
+            
+                GenParticle* boson = (GenParticle*) bTruthWZ->At(i);
+                TLorentzVector Vec_Boson1;
+                Vec_Boson1.SetPtEtaPhiM(boson->PT,boson->Eta,boson->Phi,boson->Mass);
+
+                if(abs(boson->Mass)==125){
+                    e_H_eta->FillWeighted(MuonCut(lep), Event_Weight, Vec_Boson1.Eta());
+                    e_H_Et->FillWeighted(MuonCut(lep), Event_Weight, TMath::Sqrt(Vec_Boson1.Pt() * Vec_Boson1.Pt() + Vec_Boson1.M() * Vec_Boson1.M()));
+                    e_H_pT->FillWeighted(MuonCut(lep), Event_Weight, Vec_Boson1.Pt());
+                }
+
+            }
         } // Lepton Loop
 
         //another lepton loop but only including the 4mu decays
@@ -339,7 +381,7 @@ void Process(ExRootTreeReader * treeReader) {
             }
 
             if(Debug){
-                std::cout << "This is a 4mu event." << std::endl;
+                std::cout << "This is a 4mu event. Is it seen by the detector? " << (event4mu_seen ? "yes" : "no") << std::endl;
             }
 
             for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) {
