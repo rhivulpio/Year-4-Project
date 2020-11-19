@@ -1,0 +1,115 @@
+-------------------------------------------------------------
+Running Process
+-------------------------------------------------------------
+InputFile = /disk/moose/general/asc/Y4_LHeC_2021/LHeC_CC_H4l.Had.Delphes.v2.root
+OutputFileName = output.root
+-------------------------------------------------------------
+InitReader
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootTreeReader.h
+   requested to autoload type ExRootTreeReader
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootTreeWriter.h
+   requested to autoload type ExRootTreeWriter
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootTreeBranch.h
+   requested to autoload type ExRootTreeBranch
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootResult.h
+   requested to autoload type ExRootResult
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootClassifier.h
+   requested to autoload type ExRootClassifier
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootFilter.h
+   requested to autoload type ExRootFilter
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootProgressBar.h
+   requested to autoload type ExRootProgressBar
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootConfReader.h
+   requested to autoload type ExRootConfParam
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootConfReader.h
+   requested to autoload type ExRootConfReader
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for ExRootAnalysis/ExRootTask.h
+   requested to autoload type ExRootTask
+-------------------------------------------------------------
+Input: 20554 events to process
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
+-------------------------------------------------------------
+Processing Event Number =  1000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  2000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  3000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  4000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  5000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  6000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  7000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  8000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  9000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  10000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  11000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  12000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  13000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  14000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  15000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  16000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  17000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  18000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  19000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  20000
+-------------------------------------------------------------
+Total Number of Events: 20554
+Number of 4mu Events: 4980
+Number of 4mu Events Seen by Detector: 3552
+Write to file...
+Tidy...
+Done!
