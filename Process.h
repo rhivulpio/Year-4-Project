@@ -109,6 +109,9 @@ TH1D * h_trueJet_Et;
 TH1D * h_trueJet_eta;
 TH1D * h_trueJet_Pt;
 
+//2D missing energy plot
+TH2D * h_ME_nu_Et;
+
 ExRootTreeReader * InitReader(const TString FilePath);
 
 void Process(ExRootTreeReader * treeReader);
