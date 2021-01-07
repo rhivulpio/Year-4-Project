@@ -111,6 +111,23 @@ TH1D * h_trueJet_Pt;
 
 //2D missing energy plot
 TH2D * h_ME_nu_Et;
+TH2D * h_ME_nu_eta;
+TH2D * h_ME_nu_phi;
+
+TH2D * h_mu_pT_eta;
+
+//kinematic reconstruction
+TH2D * x_Qsquared_electron;
+TH2D * x_Qsquared_hadron;
+TH2D * log_Qsquared_plot;
+TH2D * log_x_plot;
+TH2D * log_y_plot;
+TH1D * h_logx_electron;
+TH1D * h_logy_electron;
+TH1D * h_logQsquared_electron;
+TH1D * h_logx_hadron;
+TH1D * h_logy_hadron;
+TH1D * h_logQsquared_hadron;
 
 ExRootTreeReader * InitReader(const TString FilePath);
 
