@@ -1,7 +1,7 @@
 -------------------------------------------------------------
 Running Process
 -------------------------------------------------------------
-InputFile = /disk/moose/general/asc/Y4_LHeC_2021/LHeC_CC_H4l.Had.Delphes.v2.root
+InputFile = /disk/moose/general/asc/Y4_LHeC_2021/Samples_Py8303_Delphes3.4.3pre06/LHeC_CC_H4l.Delphes.root
 OutputFileName = output.root
 -------------------------------------------------------------
 InitReader
@@ -35,8 +35,111 @@ Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
 Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
    Missing FileEntry for ExRootAnalysis/ExRootTask.h
    requested to autoload type ExRootTask
+Warning in <TStreamerInfo::BuildCheck>: 
+   The StreamerInfo of class Jet read from file /disk/moose/general/asc/Y4_LHeC_2021/Samples_Py8303_Delphes3.4.3pre06/LHeC_CC_H4l.Delphes.root
+   has the same version (=4) as the active class but a different checksum.
+   You should update the version to ClassDef(Jet,5).
+   Do not try to write objects with the current class definition,
+   the files will not be readable.
+
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float NeutralEnergyFraction; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float ChargedEnergyFraction; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float Beta; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float BetaStar; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float MeanSqDeltaR; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float PTD; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float FracPt; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   float Tau; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector SoftDroppedJet; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector SoftDroppedSubJet1; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector SoftDroppedSubJet2; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector TrimmedP4; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector PrunedP4; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector SoftDroppedP4; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   int NSubJetsTrimmed; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   int NSubJetsPruned; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   int NSubJetsSoftDropped; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   double ExclYmerge23; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   double ExclYmerge34; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   double ExclYmerge45; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   double ExclYmerge56; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TRefArray Constituents; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TRefArray Particles; //
+Warning in <TStreamerInfo::CompareContent>: The following data member of
+the in-memory layout version 4 of class 'Jet' is missing from 
+the on-file layout version 4:
+   TLorentzVector Area; //
 -------------------------------------------------------------
-Input: 20554 events to process
+Input: 100000 events to process
 Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
 Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
 Info in <TROOT::TEfficiency::SetUseWeightedEvents>: Handle weighted events for computing efficiency
@@ -107,9 +210,246 @@ Processing Event Number =  19000
 -------------------------------------------------------------
 Processing Event Number =  20000
 -------------------------------------------------------------
-Total Number of Events: 20554
-Number of 4mu Events: 4980
-Number of 4mu Events Seen by Detector: 3552
+-------------------------------------------------------------
+Processing Event Number =  21000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  22000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  23000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  24000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  25000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  26000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  27000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  28000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  29000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  30000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  31000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  32000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  33000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  34000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  35000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  36000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  37000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  38000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  39000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  40000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  41000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  42000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  43000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  44000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  45000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  46000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  47000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  48000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  49000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  50000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  51000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  52000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  53000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  54000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  55000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  56000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  57000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  58000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  59000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  60000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  61000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  62000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  63000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  64000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  65000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  66000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  67000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  68000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  69000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  70000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  71000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  72000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  73000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  74000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  75000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  76000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  77000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  78000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  79000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  80000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  81000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  82000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  83000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  84000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  85000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  86000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  87000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  88000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  89000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  90000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  91000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  92000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  93000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  94000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  95000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  96000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  97000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  98000
+-------------------------------------------------------------
+-------------------------------------------------------------
+Processing Event Number =  99000
+-------------------------------------------------------------
+Total Number of Events: 100000
+Number of 4mu Events: 24345
+Number of 4mu Events Seen by Detector: 18458
 Write to file...
 Tidy...
 Done!
