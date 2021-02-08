@@ -81,9 +81,22 @@ TH1D * h_Higgs_Et;
 //4mu event graphs
 TH1D * h4mu_mu_pT;
 TH1D * h4mu_mu_Et;
-TH1D * h4mu_nu_Et;
+TH1D * h4mu_nu_pT;
 TH1D * h4mu_mu_eta;
 TH1D * h4mu_nu_eta; 
+
+//4mu event seen by detector graphs
+TH1D * h4mu_mu_pT_seen;
+TH1D * h4mu_mu_Et_seen;
+TH1D * h4mu_nu_pT_seen;
+TH1D * h4mu_mu_eta_seen;
+TH1D * h4mu_nu_eta_seen; 
+TH1D * h4mu_Z_pT_seen;
+TH1D * h4mu_Z_eta_seen;
+TH1D * h4mu_Higgs_pT_seen;
+TH1D * h4mu_Higgs_eta_seen;
+TH1D * h4mu_jet_eta_seen;
+TH1D * h4mu_jet_pT_seen;
 
 //acceptance plots
 TEfficiency * e_eta;
@@ -110,7 +123,7 @@ TH1D * h_trueJet_eta;
 TH1D * h_trueJet_Pt;
 
 //2D missing energy plot
-TH2D * h_ME_nu_Et;
+TH2D * h_ME_nu_pT;
 TH2D * h_ME_nu_eta;
 TH2D * h_ME_nu_phi;
 
