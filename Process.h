@@ -14,6 +14,7 @@
 #include "TSystemDirectory.h"
 #include "TSystemFile.h"
 #include "TVector3.h"
+#include "THStack.h"
 
 #include <iostream>
 #include <utility>
@@ -127,7 +128,9 @@ TH2D * h_ME_nu_pT;
 TH2D * h_ME_nu_eta;
 TH2D * h_ME_nu_phi;
 
+//scatter plots
 TH2D * h_mu_pT_eta;
+TH2D * h_4mu_pT_eta;
 
 //kinematic reconstruction
 TH2D * x_Qsquared_electron;
@@ -141,6 +144,14 @@ TH1D * h_logQsquared_electron;
 TH1D * h_logx_hadron;
 TH1D * h_logy_hadron;
 TH1D * h_logQsquared_hadron;
+
+//Z mass reconstruction
+TH1D * h_Higgs_reco;
+TH1D * h_ZZ_mass_reco;
+TH1D * h_Z_reco;
+TH1D * h_Zstar_reco;
+
+
 
 ExRootTreeReader * InitReader(const TString FilePath);
 

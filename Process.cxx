@@ -36,7 +36,9 @@ int main(int argc, char* argv[]) {
     OutputFile->mkdir("Acceptance Plots");
     OutputFile->mkdir("True Jets");
     OutputFile->mkdir("Missing Energy");
+    OutputFile->mkdir("Scatter Plots");
     OutputFile->mkdir("Kinematic Reconstruction");
+    OutputFile->mkdir("Mass Reconstruction");
 
     //this will be a histogram where the first bin is the total number of events, the second bin is the number of 4mu
     //events and the third bin is the number of 4mu events that pass the cuts
@@ -116,7 +118,8 @@ int main(int argc, char* argv[]) {
 
     //Plotting different variables against each other - need to look at this
     e_mu_pT_eta = new TEfficiency("e_mu_pT_eta", "; Muon Pseudorapidity; Muon Transverse Momentum [GeV]", 100, -10, 10);
-    h_mu_pT_eta = new TH2D("h_mu_pT_eta", "Muon Transverse Momentum against Muon Pseudorapidity; Muon Pseudorapidity; Muon Transverse Momentum [GeV]", 30, -8, 4, 30, 0, 140);
+    h_mu_pT_eta = new TH2D("h_mu_pT_eta", "Muon Transverse Momentum against Muon Pseudorapidity; Muon Pseudorapidity; Muon Transverse Momentum [GeV]", 30, -8, 4, 30, 0, 180);
+    h_4mu_pT_eta = new TH2D("h_4mu_pT_eta", "Muon Transverse Momentum against Muon Pseudorapidity for 4mu events; Muon Pseudorapidity; Muon Transverse Momentum [GeV]", 30, -8, 4, 30, 0, 180);
 
     //true jet histograms
     h_trueJet_Et = new TH1D("h_trueJet_Et","; True Jet Transverse Energy [GeV]; Events", 200, 0, 180);
@@ -140,9 +143,15 @@ int main(int argc, char* argv[]) {
     h_logy_hadron = new TH1D("h_logy_hadron", "; log_{10}y; Events", 100, -2, 0.5);
     h_logQsquared_hadron = new TH1D("h_logQsquared_hadron", "; log_{10}Q^{2}; Events", 100, -1, 6);
         //comparing electron and hadron reconstruction methods
-    log_Qsquared_plot = new TH2D("log_Qsquared_plot", "log_{10}(Q^{2}) (Electron) against log_{10}(Q^{2}) (Hadron); log_{10}(Q^{2}_{h}); log_{10}(Q^{2}_{e})", 100, -10, 10, 100, -10, 10);
-    log_x_plot = new TH2D("log_x_plot", "log_{10}(x) (Electron) against log_{10}(x) (Hadron); log(x_{h}); log_{10}(x_{e})", 100, -10, 10, 100, -10, 10);
-    log_y_plot = new TH2D("log_y_plot", "log_{10}(y) (Electron) against log_{10}(y) (Hadron); log(y_{h}); log_{10}(y_{e})", 100, -3, 1, 100, 0, 3);
+    log_Qsquared_plot = new TH2D("log_Qsquared_plot", "log_{10}(Q^{2}) (Electron) against log_{10}(Q^{2}) (Hadron); log_{10}(Q^{2}_{h}); log_{10}(Q^{2}_{e})", 100, 0, 7, 100, 0, 7);
+    log_x_plot = new TH2D("log_x_plot", "log_{10}(x) (Electron) against log_{10}(x) (Hadron); log(x_{h}); log_{10}(x_{e})", 100, -5, 0, 100, -5, 0);
+    log_y_plot = new TH2D("log_y_plot", "log_{10}(y) (Electron) against log_{10}(y) (Hadron); log(y_{h}); log_{10}(y_{e})", 100, -2, 1, 100, -2, 1);
+
+    //Z mass reconstruction
+    h_Higgs_reco = new TH1D("h_Higgs_reco", "; Reconstructed Higgs Boson Mass [GeV]; Events ", 75, 0.0, 150.0);
+    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ^* Mass [GeV]; Events ", 75, 0.0, 150.0);
+    h_Z_reco = new TH1D("h_Z_reco", "; Reconstructed Z Boson Mass [GeV]; Events ", 75, 0.0, 150.0);
+    h_Zstar_reco = new TH1D("h_Zstar_reco", "; Reconstructed Z^* Boson Mass [GeV]; Events ", 75, 0.0, 150.0);
 
     // Run the selection
     Process(reader);
@@ -237,7 +246,10 @@ int main(int argc, char* argv[]) {
     h_ME_nu_eta->Write();
     h_ME_nu_phi ->Write();
 
+    OutputFile->cd("Scatter Plots");
+
     h_mu_pT_eta->Write();
+    h_4mu_pT_eta->Write();
 
     OutputFile->cd("Kinematic Reconstruction");
 
@@ -252,8 +264,40 @@ int main(int argc, char* argv[]) {
     h_logx_hadron->Write();
     h_logy_hadron->Write();
     h_logQsquared_hadron->Write();
-    
 
+    OutputFile->cd("Mass Reconstruction");
+    h_Higgs_reco->Write();
+    h_ZZ_mass_reco->Write();
+    h_Z_reco->Write();
+    h_Zstar_reco->Write();
+
+    TCanvas * c1 = new TCanvas("c1", "Mass Reconstruction", 50, 50, 1500, 1200);
+    TLegend * legend;
+
+    h_Higgs_reco->SetTitle("Reconstruction of Higgs, Z and Z* Masses");
+    h_Higgs_reco->GetXaxis()->SetTitle("Mass (GeV)");
+    h_Higgs_reco->GetYaxis()->SetTitle("Number of Events");
+    h_Higgs_reco->GetXaxis()->SetRangeUser(0, 150);
+    h_Higgs_reco->SetLineColor(kRed);
+    h_Higgs_reco->SetStats(kFALSE);
+    h_Higgs_reco->Draw("hist E2");
+
+    h_Z_reco->SetLineColor(kGreen);
+    h_Z_reco->Draw("hist same E2");
+
+    h_Zstar_reco->SetLineColor(kBlue);
+    h_Zstar_reco->Draw("hist same E2");
+
+    legend = new TLegend(0.1,0.8,0.25,0.9);
+    legend->SetHeader("Particle", "C");
+    legend->AddEntry(h_Higgs_reco, "Higgs Boson");
+    legend->AddEntry(h_Z_reco, "Z Boson");
+    legend->AddEntry(h_Zstar_reco, "Z* Boson");
+    legend->Draw("same");
+
+    c1->Write("Mass Reconstruction");
+
+    
     OutputFile->Close();
 
     std::cout << "Tidy..." << std::endl;
@@ -512,6 +556,8 @@ void Process(ExRootTreeReader * treeReader) {
 
             TLorentzVector Vec_Neutrino;
 
+            std::vector<GenParticle*> all_muons;
+
             for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) {
 
                 GenParticle * lep_mu = (GenParticle*) bTruthLepton->At(i);
@@ -555,27 +601,33 @@ void Process(ExRootTreeReader * treeReader) {
                     h4mu_nu_eta -> Fill(Vec_Lepton2.Eta(), Event_Weight); 
                 }
 
-                //lepton histograms for 4mu events seen by the detector
-                if(abs(lep_mu->PID) == 13 && event4mu_seen){
-                    h4mu_mu_pT_seen->Fill(Vec_Lepton2.Pt(), Event_Weight);
-                    h4mu_mu_eta_seen->Fill(Vec_Lepton2.Eta(), Event_Weight);
-                    //plotting acceptance against different variables for muons in only 4mu events seen by detector
-                    e4mu_eta->FillWeighted(MuonCut, Event_Weight, Vec_Lepton2.Eta());
-                    e4mu_Et->FillWeighted(MuonCut, Event_Weight, TMath::Sqrt(Vec_Lepton2.Pt() * Vec_Lepton2.Pt() + Vec_Lepton2.M() * Vec_Lepton2.M()));
-                    e4mu_pT->FillWeighted(MuonCut, Event_Weight, Vec_Lepton2.Pt());
-                }
+                //plots for 4mu events that are seen by the detector
+                if(event4mu_seen){
+                    if(abs(lep_mu->PID) == 13){
+                        all_muons.push_back(lep_mu);
+                        h4mu_mu_pT_seen->Fill(Vec_Lepton2.Pt(), Event_Weight);
+                        h4mu_mu_eta_seen->Fill(Vec_Lepton2.Eta(), Event_Weight);
 
-                if(abs(lep_mu->PID) == 12 && event4mu_seen){
-                    h4mu_nu_pT_seen->Fill(Vec_Lepton2.Pt(), Event_Weight);
-                    h4mu_nu_eta_seen->Fill(Vec_Lepton2.Eta(), Event_Weight); 
+                        //plotting acceptance against different variables for muons in only 4mu events seen by detector
+                        e4mu_eta->FillWeighted(MuonCut, Event_Weight, Vec_Lepton2.Eta());
+                        e4mu_Et->FillWeighted(MuonCut, Event_Weight, TMath::Sqrt(Vec_Lepton2.Pt() * Vec_Lepton2.Pt() + Vec_Lepton2.M() * Vec_Lepton2.M()));
+                        e4mu_pT->FillWeighted(MuonCut, Event_Weight, Vec_Lepton2.Pt());
 
-                    //calculating parameters for the kinematic reconstruction methods
-                    scattered_nu_E = Vec_Lepton2.E();
-                    Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + cos(TMath::Pi() - Vec_Lepton2.Theta()));
-                    y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * sin((TMath::Pi() - Vec_Lepton2.Theta())/2) * sin((TMath::Pi() - Vec_Lepton2.Theta())/2);
+                        //plotting scatter graph for muons in 4mu events that are seen by the detector
+                        h_4mu_pT_eta->Fill(Vec_Lepton2.Eta(), Vec_Lepton2.Pt());
+                    }
+
+                    if(abs(lep_mu->PID) == 12){
+                        h4mu_nu_pT_seen->Fill(Vec_Lepton2.Pt(), Event_Weight);
+                        h4mu_nu_eta_seen->Fill(Vec_Lepton2.Eta(), Event_Weight); 
+
+                        //calculating parameters for the kinematic reconstruction methods
+                        scattered_nu_E = Vec_Lepton2.E();
+                        Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + cos(TMath::Pi() - Vec_Lepton2.Theta()));
+                        y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * sin((TMath::Pi() - Vec_Lepton2.Theta())/2) * sin((TMath::Pi() - Vec_Lepton2.Theta())/2);
+                    }
+
                 }
-            
-            
             }
 
             if(Debug){
@@ -626,8 +678,92 @@ void Process(ExRootTreeReader * treeReader) {
                 h_logQsquared_hadron -> Fill(TMath::Log10(Q_squared_h), Event_Weight);
                 h_logx_hadron -> Fill(TMath::Log10(x_h), Event_Weight);
                 h_logy_hadron -> Fill(TMath::Log10(y_h), Event_Weight);
+
+                //reconstructing Z mass from lepton pairs
+                    std::vector<TLorentzVector> muons; //makes an array which will contain the Lorentz vectors for muons
+                    TLorentzVector reco_Higgs;
+                    reco_Higgs.SetPtEtaPhiM(0,0,0,0);
+                    std::vector<TLorentzVector> antimuons; //makes an array which will contain the Lorentz vectors for antimuons
+                    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
+                    TLorentzVector Temp_Vector;
+                    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
+                    std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
+                    
+                    for(int i = 0; i < all_muons.size(); ++i){
+
+                        Temp_Vector.SetPtEtaPhiM(all_muons[i]->PT, all_muons[i]->Eta, all_muons[i]->Phi, all_muons[i]->Mass);
+                        if(all_muons[i]->PID==13){
+                            muons.push_back(Temp_Vector);
+                        }
+                        else if(all_muons[i]->PID==-13){
+                            antimuons.push_back(Temp_Vector);
+                        }
+                    }
+
+                    reco_Higgs = muons[0] + muons[1] + antimuons[0] + antimuons[1];
+
+                    recoZ.push_back(muons[0]+antimuons[0]);
+                    recoZ.push_back(muons[0]+antimuons[1]);
+                    recoZ.push_back(muons[1]+antimuons[0]);
+                    recoZ.push_back(muons[1]+antimuons[1]); //we now have a list of the Lorentz Vectors for all Z bosons from every combination of lepton pairs
+
+                    for(int j = 0; j < recoZ.size(); ++j){
+                        recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
+                    } 
+
+                    std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
+
+                    double Zmass = 91.1876; //in GeV
+
+                    for(int k = 0; k < recoZmass.size(); ++k){
+                        double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
+                        massdiff.push_back(diff);
+                    } 
+
+                    std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
+
+                    double min = massdiff[0];
+                    for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
+                        if(massdiff[l] < min){
+                            min = massdiff[l];
+                        }
+                    }
+
+                    double Z_onshell;
+                    double Z_offshell;
+
+                    if(min == massdiff[0]){ //these if statements are all determining which Z is on shell and which is of shell based on the lepton pairings
+                        Z_onshell = recoZmass[0];
+                        Z_offshell = recoZmass[3];
+                    }
+
+                    if(min == massdiff[1]){
+                        Z_onshell = recoZmass[1];
+                        Z_offshell = recoZmass[2];
+                    }
+
+                    if(min == massdiff[2]){
+                        Z_onshell = recoZmass[2];
+                        Z_offshell = recoZmass[1];
+                    }
+
+                    if(min == massdiff[3]){
+                        Z_onshell = recoZmass[3];
+                        Z_offshell = recoZmass[0];
+                    }
                 
-            }
+                    if(Debug){
+                        std::cout << " Smallest Mass Diff: " << min << std::endl;
+                        std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
+                        std::cout << " Higgs Mass: " << reco_Higgs.M() << std::endl;
+                    } 
+
+                    h_Higgs_reco->Fill(reco_Higgs.M(), Event_Weight);
+                    h_ZZ_mass_reco->Fill(Z_onshell, Event_Weight);
+                    h_ZZ_mass_reco->Fill(Z_offshell, Event_Weight);
+                    h_Z_reco->Fill(Z_onshell, Event_Weight);
+                    h_Zstar_reco->Fill(Z_offshell, Event_Weight);
+            } 
         
         }
         //------------------------------------------------------------------
