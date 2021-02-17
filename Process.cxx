@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
     OutputFile->mkdir("Scatter Plots");
     OutputFile->mkdir("Kinematic Reconstruction");
     OutputFile->mkdir("Mass Reconstruction");
+    OutputFile->mkdir("Event Weight");
 
     //this will be a histogram where the first bin is the total number of events, the second bin is the number of 4mu
     //events and the third bin is the number of 4mu events that pass the cuts
@@ -147,11 +148,14 @@ int main(int argc, char* argv[]) {
     log_x_plot = new TH2D("log_x_plot", "log_{10}(x) (Electron) against log_{10}(x) (Hadron); log(x_{h}); log_{10}(x_{e})", 100, -5, 0, 100, -5, 0);
     log_y_plot = new TH2D("log_y_plot", "log_{10}(y) (Electron) against log_{10}(y) (Hadron); log(y_{h}); log_{10}(y_{e})", 100, -2, 1, 100, -2, 1);
 
-    //Z mass reconstruction
-    h_Higgs_reco = new TH1D("h_Higgs_reco", "; Reconstructed Higgs Boson Mass [GeV]; Events ", 75, 0.0, 150.0);
-    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ^* Mass [GeV]; Events ", 75, 0.0, 150.0);
-    h_Z_reco = new TH1D("h_Z_reco", "; Reconstructed Z Boson Mass [GeV]; Events ", 75, 0.0, 150.0);
-    h_Zstar_reco = new TH1D("h_Zstar_reco", "; Reconstructed Z^* Boson Mass [GeV]; Events ", 75, 0.0, 150.0);
+    //mass reconstruction
+    h_Higgs_reco = new TH1D("h_Higgs_reco", "; Reconstructed Higgs Boson Mass [GeV]; Events ", 100, 0.0, 130.0);
+    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ* Mass [GeV]; Events ", 100, 0.0, 130.0);
+    h_Z_reco = new TH1D("h_Z_reco", "; Reconstructed Z Boson Mass [GeV]; Events ", 100, 0.0, 130.0);
+    h_Zstar_reco = new TH1D("h_Zstar_reco", "; Reconstructed Z* Boson Mass [GeV]; Events ", 100, 0.0, 130.0);
+
+    //event weight plot
+    h_eventweight = new TH1D("h_eventweight", "; Event Weight ; Events ", 100, 0.000100, 0.000120);
 
     // Run the selection
     Process(reader);
@@ -297,6 +301,10 @@ int main(int argc, char* argv[]) {
 
     c1->Write("Mass Reconstruction");
 
+    OutputFile->cd("Event Weight");
+
+    h_eventweight->Write();
+
     
     OutputFile->Close();
 
@@ -343,9 +351,19 @@ void Process(ExRootTreeReader * treeReader) {
 
     std::cout << "-------------------------------------------------------------"  << std::endl;
     std::cout << "Input: " << numberOfEntries << " events to process" << std::endl;
-
+    
     // Loop over all events
     for(Int_t entry = 0; entry < numberOfEntries; ++entry) {
+
+        //calculating scaling factors for signal and background files
+        double sigma_signal = 1.33e-18; //in barns
+        double sigma_bkgd = 6.0e-19; //in barns
+        double no_events = 100000;
+        double luminosity_signal = no_events/sigma_signal;
+        double luminosity_bkgd = no_events/sigma_bkgd;
+        double luminosity_LHeC = 1000e15;
+        double sf_signal = luminosity_LHeC/luminosity_signal; //scale factor
+        double sf_bkgd = luminosity_LHeC/luminosity_bkgd;
 
         TLorentzVector Missing_Energy_Vector;
         Missing_Energy_Vector.SetPtEtaPhiM(0.0, 0.0, 0.0, 0.0);
@@ -355,10 +373,12 @@ void Process(ExRootTreeReader * treeReader) {
         treeReader->ReadEntry(entry);
 
         HepMCEvent * event = (HepMCEvent*) bEvent->At(0);
-    	const float Event_Weight = event->Weight;
+    	// const float Event_Weight = event->Weight;
+        const float Event_Weight = sf_bkgd; //changed this but not sure if its right - check this
 
         h_EventCount->Fill(0.5);
         h_WeightCount->Fill(0.5,Event_Weight);
+        h_eventweight->Fill(Event_Weight);
 
         if( (entry > 0 && entry%1000 == 0) || Debug) {
             std::cout << "-------------------------------------------------------------"  << std::endl;
@@ -711,7 +731,9 @@ void Process(ExRootTreeReader * treeReader) {
                         recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
                     } 
 
-                    std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
+                    if(Debug){
+                        std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
+                    }
 
                     double Zmass = 91.1876; //in GeV
 
@@ -720,7 +742,9 @@ void Process(ExRootTreeReader * treeReader) {
                         massdiff.push_back(diff);
                     } 
 
-                    std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
+                    if(Debug){
+                        std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
+                    }
 
                     double min = massdiff[0];
                     for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference

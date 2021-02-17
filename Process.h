@@ -151,6 +151,8 @@ TH1D * h_ZZ_mass_reco;
 TH1D * h_Z_reco;
 TH1D * h_Zstar_reco;
 
+//event weight
+TH1D * h_eventweight;
 
 
 ExRootTreeReader * InitReader(const TString FilePath);
