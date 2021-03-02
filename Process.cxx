@@ -2,13 +2,19 @@
 #include "Process.h"
 
 bool Debug = false;
+//const TString signal_inputfile = "/disk/moose/general/asc/Y4_LHeC_2021/Samples_Py8303_Delphes3.4.3pre06/LHeC_CC_H4l.Delphes.root";
+//const TString bkgd_inputfile = "/disk/moose/general/asc/Y4_LHeC_2021/Samples_Py8303_Delphes3.4.3pre06/LHeC_CC_Zll.100k.v2.Delphes.root";
 
 int main(int argc, char* argv[]) {
 
     // Input Delphes File
-
+ 
     const TString InputFile = argv[1];
     const TString OutputFileName = argv[2];
+
+    //const bool signal = argv[1] == "signal.root";
+
+    //const TString InputFile = signal ? signal_inputfile : bkgd_inputfile;
 
     std::cout << "-------------------------------------------------------------"  << std::endl;
     std::cout << "Running Process"  << std::endl;
@@ -19,6 +25,7 @@ int main(int argc, char* argv[]) {
 
     ExRootTreeReader * reader = NULL;
     reader = InitReader(InputFile);
+
 
     //------------------------------------
     // Declare the output
@@ -40,6 +47,7 @@ int main(int argc, char* argv[]) {
     OutputFile->mkdir("Kinematic Reconstruction");
     OutputFile->mkdir("Mass Reconstruction");
     OutputFile->mkdir("Event Weight");
+    OutputFile->mkdir("Mass Reco Cuts");
 
     //this will be a histogram where the first bin is the total number of events, the second bin is the number of 4mu
     //events and the third bin is the number of 4mu events that pass the cuts
@@ -53,7 +61,6 @@ int main(int argc, char* argv[]) {
     h_ZZ_Mass = new TH1D("h_ZZ_Mass","; ZZ Mass [GeV]; Events / 2 GeV",125,0.0,250.0);
 
     //transverse momentum histograms
-
     h_Lepton_Pt = new TH1D("h_Lepton_Pt","; Charged Lepton p_{T} [GeV]; Events / 5 GeV",200,0.0,300.0);
     h_Z_Pt = new TH1D("h_Z_Pt","; Z p_{T} [GeV]; Events / 5 GeV",200,0.0,300.0);
     h_Jet_Pt = new TH1D("h_Jet_Pt","; Jet p_{T} [GeV]; Events / 5 GeV",200,0.0,300.0);
@@ -61,7 +68,6 @@ int main(int argc, char* argv[]) {
     h_Higgs_pT = new TH1D("h_Higgs_pT","; Higgs Transverse Momentum ; Events", 100, 0, 170);
 
     //pseudorapidity histograms
-
     h_Jet_eta = new TH1D("h_Jet_eta","; Jet Eta ; Events", 50, -6.0, 1.0);
     h_Z_eta = new TH1D("h_Z_eta","; Z Boson Eta ; Events", 50, -7.0, 1.0);
     h_mu_eta = new TH1D("h_mu_eta","; Muon Eta ; Events", 50, -7.0, 5.0);
@@ -69,7 +75,6 @@ int main(int argc, char* argv[]) {
     h_Higgs_eta = new TH1D("h_Higgs_eta","; Higgs Eta ; Events", 100, -8.0, 0); 
 
     //transverse energy histograms
-
     h_Jet_Et = new TH1D("h_Jet_Et","; Jet Transverse Energy [GeV]; Events", 100, 0, 160);
     h_Z_Et = new TH1D("h_Z_Et","; Z Transverse Energy [GeV]; Events", 100, 0, 180);
     h_mu_Et = new TH1D("h_mu_Et", "; Muon Transverse Energy [GeV] ; Events", 100, 0, 140);
@@ -149,16 +154,20 @@ int main(int argc, char* argv[]) {
     log_y_plot = new TH2D("log_y_plot", "log_{10}(y) (Electron) against log_{10}(y) (Hadron); log(y_{h}); log_{10}(y_{e})", 100, -2, 1, 100, -2, 1);
 
     //mass reconstruction
-    h_Higgs_reco = new TH1D("h_Higgs_reco", "; Reconstructed Higgs Boson Mass [GeV]; Events ", 100, 0.0, 130.0);
-    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ* Mass [GeV]; Events ", 100, 0.0, 130.0);
-    h_Z_reco = new TH1D("h_Z_reco", "; Reconstructed Z Boson Mass [GeV]; Events ", 100, 0.0, 130.0);
-    h_Zstar_reco = new TH1D("h_Zstar_reco", "; Reconstructed Z* Boson Mass [GeV]; Events ", 100, 0.0, 130.0);
+    h_Higgs_reco = new TH1D("h_Higgs_reco", "; Reconstructed Higgs Boson Mass [GeV]; Events ", 150, 0.0, 130.0);
+    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ* Mass [GeV]; Events ", 150, 0.0, 130.0);
+    h_Z_reco = new TH1D("h_Z_reco", "; Reconstructed Z Boson Mass [GeV]; Events ", 150, 0.0, 130.0);
+    h_Zstar_reco = new TH1D("h_Zstar_reco", "; Reconstructed Z* Boson Mass [GeV]; Events ", 150, 0.0, 130.0);
 
     //event weight plot
     h_eventweight = new TH1D("h_eventweight", "; Event Weight ; Events ", 100, 0.000100, 0.000120);
 
+    //mass reconstruction plots with cuts implemented
+    // h_Zstar_cuts = new TH1D("h_Zstar_cuts", "; Cut on Maximum Z* Mass [GeV] ; Events ", 150, 0.0, 100);
+    
+
     // Run the selection
-    Process(reader);
+    Process(reader); //removed signal from the arguments
 
     std::cout << "Total Number of Events: " << h_EventCount->GetBinContent(1) << std::endl;
     std::cout << "Number of 4mu Events: " << h_EventCount->GetBinContent(2) << std::endl;
@@ -281,7 +290,7 @@ int main(int argc, char* argv[]) {
     h_Higgs_reco->SetTitle("Reconstruction of Higgs, Z and Z* Masses");
     h_Higgs_reco->GetXaxis()->SetTitle("Mass (GeV)");
     h_Higgs_reco->GetYaxis()->SetTitle("Number of Events");
-    h_Higgs_reco->GetXaxis()->SetRangeUser(0, 150);
+    h_Higgs_reco->GetXaxis()->SetRangeUser(0, 130);
     h_Higgs_reco->SetLineColor(kRed);
     h_Higgs_reco->SetStats(kFALSE);
     h_Higgs_reco->Draw("hist E2");
@@ -292,7 +301,7 @@ int main(int argc, char* argv[]) {
     h_Zstar_reco->SetLineColor(kBlue);
     h_Zstar_reco->Draw("hist same E2");
 
-    legend = new TLegend(0.1,0.8,0.25,0.9);
+    legend = new TLegend(0.8,0.8,0.9,0.9);
     legend->SetHeader("Particle", "C");
     legend->AddEntry(h_Higgs_reco, "Higgs Boson");
     legend->AddEntry(h_Z_reco, "Z Boson");
@@ -304,6 +313,13 @@ int main(int argc, char* argv[]) {
     OutputFile->cd("Event Weight");
 
     h_eventweight->Write();
+
+    OutputFile->cd("Mass Reco Cuts");
+    //std::cout << h_varycut << std::endl;
+    for(int i = 0; i < h_varycut.size(); ++i){
+        h_varycut[i]->Write();
+    }
+    // h_Zstar_cuts->Write();
 
     
     OutputFile->Close();
@@ -335,7 +351,7 @@ ExRootTreeReader * InitReader(const TString FilePath) {
 }
 
 
-void Process(ExRootTreeReader * treeReader) {
+void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arguments
 
     // Get pointers to branches used in this analysis
     bEvent = treeReader->UseBranch("Event");
@@ -352,29 +368,49 @@ void Process(ExRootTreeReader * treeReader) {
     std::cout << "-------------------------------------------------------------"  << std::endl;
     std::cout << "Input: " << numberOfEntries << " events to process" << std::endl;
     
+    //---------------------------------------------------------
+    //calculating scale factors for signal and background files
+    //---------------------------------------------------------
+    double sigma_signal = 1.34e-17; //in barns
+    double sigma_bkgd = 8.9e-18; //in barns
+    double no_events = 100000;
+    double luminosity_signal = no_events/sigma_signal;
+    double luminosity_bkgd = no_events/sigma_bkgd;
+    double luminosity_LHeC = 1000e15; //1000 inverse femtobarns
+    double sf_signal = luminosity_LHeC/luminosity_signal; //scale factor
+    double sf_bkgd = luminosity_LHeC/luminosity_bkgd;
+
+    std::cout << "sf signal = " << sf_signal << " sf bkgd = " << sf_bkgd << std::endl;
+
+    //defining the cut parameters for the minimum pT cuts
+    int n_cuts = 20;
+    double min_cut = 10.0; //GeV
+    double step_cut = 2.0; //GeV
+
+    std::vector<double> cut_values; //defines an array which will contain all of the minimum pT cut values
+    std::vector<bool> pT_cuts; //defines an array which will contain a flag to indicate whether each event passes each minimum pT cut
+
+    for(int n = 0; n < n_cuts; ++n){
+        TString suffix = "_cut";
+        suffix += n;
+
+        TH1D * h_new = new TH1D("h_varycut"+suffix," ; m_{4l} [GeV]; Events", 50, 50, 250);
+        h_varycut.push_back(h_new);
+
+        cut_values.push_back(min_cut + n*step_cut);
+    }  
+    
     // Loop over all events
     for(Int_t entry = 0; entry < numberOfEntries; ++entry) {
-
-        //calculating scaling factors for signal and background files
-        double sigma_signal = 1.33e-18; //in barns
-        double sigma_bkgd = 6.0e-19; //in barns
-        double no_events = 100000;
-        double luminosity_signal = no_events/sigma_signal;
-        double luminosity_bkgd = no_events/sigma_bkgd;
-        double luminosity_LHeC = 1000e15;
-        double sf_signal = luminosity_LHeC/luminosity_signal; //scale factor
-        double sf_bkgd = luminosity_LHeC/luminosity_bkgd;
-
-        TLorentzVector Missing_Energy_Vector;
-        Missing_Energy_Vector.SetPtEtaPhiM(0.0, 0.0, 0.0, 0.0);
-        //This is to calculate the missing energy, set it equal to zero at the start of each event and the vector sum will accumulate throughout.
 
         //Load selected branches with data from specified event
         treeReader->ReadEntry(entry);
 
         HepMCEvent * event = (HepMCEvent*) bEvent->At(0);
-    	// const float Event_Weight = event->Weight;
-        const float Event_Weight = sf_bkgd; //changed this but not sure if its right - check this
+
+        //if the argument = signal, it will use the signal scale factor. if not, it will use the background scale factor
+        //const float Event_Weight = signal ? sf_signal : sf_bkgd;
+        const float Event_Weight = sf_signal; //manually change this
 
         h_EventCount->Fill(0.5);
         h_WeightCount->Fill(0.5,Event_Weight);
@@ -389,14 +425,19 @@ void Process(ExRootTreeReader * treeReader) {
         bool event4mu = true; //flag to check if the event satisfies the 4mu subchannel
         bool event4mu_seen = true; //flag to check if the 4mu event can be seen by the detector
 
+        //This is to calculate the missing energy, set it equal to zero at the start of each event and the vector 
+        //sum will accumulate throughout.
+        TLorentzVector Missing_Energy_Vector;
+        Missing_Energy_Vector.SetPtEtaPhiM(0.0, 0.0, 0.0, 0.0);
+
         //------------------------------------------------------------------
         // Jet Loop
         //------------------------------------------------------------------
 
-        bool JetCut = false;
+        bool JetCut = false; //flag to check if the jet passes the jet cut
         double eta_min_j = -5.0; //eta range of the hadronic calorimeter
         double eta_max_j = 5.5;
-        double pT_min = 15;
+        double pT_min = 15; //in GeV
 
         for(int i = 0; i < bJet->GetEntriesFast(); ++i) {
 
@@ -408,6 +449,7 @@ void Process(ExRootTreeReader * treeReader) {
             TLorentzVector Vec_Jet;
             Vec_Jet.SetPtEtaPhiM(jet->PT,jet->Eta,jet->Phi,jet->Mass);
             
+            //defining the selection criteria for the jets
             if(
                 eta_min_j<jet->Eta && 
                 jet->Eta<eta_max_j && 
@@ -421,20 +463,22 @@ void Process(ExRootTreeReader * treeReader) {
                 h_Jet_Et->Fill(TMath::Sqrt(Vec_Jet.Pt() * Vec_Jet.Pt() + Vec_Jet.M() * Vec_Jet.M()), Event_Weight);
             }
 
-            TLorentzVector Vec_Lep; //specified outside the loop so that I can use it again later 
+            TLorentzVector Vec_Lep;
 
             bool truejet = true; //flag to check if the jet is a true jet or not
 
-            for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) {  //lepton loop inside jet loop to calculate DeltaR for each jet/lepton combination
+            //lepton loop inside jet loop to calculate DeltaR for each jet/lepton combination
+            for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) { 
 
                 GenParticle * lep = (GenParticle*) bTruthLepton->At(i);
 
                 Vec_Lep.SetPtEtaPhiM(lep->PT,lep->Eta,lep->Phi,lep->Mass);
 
-                double deltaR = ((Vec_Jet.Phi() - Vec_Lep.Phi()) * (Vec_Jet.Phi() - Vec_Lep.Phi())) + ((Vec_Jet.Eta() - Vec_Lep.Eta()) * (Vec_Jet.Eta() - Vec_Lep.Eta()));
-                double jet_radius = 0.4;
+                double deltaR = TMath::Power(Vec_Jet.Phi() - Vec_Lep.Phi(), 2) + TMath::Power(Vec_Jet.Eta() - Vec_Lep.Eta(), 2);
+                double jet_radius = 0.4; //defined in the DELPHES configuration
 
-                if(deltaR < jet_radius) truejet = false; //a true jet is defined as one where the DeltaR between the jet and the lepton is greater than the jet radius
+                //a true jet is defined as one where the DeltaR between the jet and the lepton is greater than the jet radius
+                if(deltaR < jet_radius) truejet = false;
 
                 if(Debug) std::cout << "  DeltaR (Lepton " << i << ") = " << deltaR << std::endl;
 
@@ -442,44 +486,43 @@ void Process(ExRootTreeReader * treeReader) {
 
             if(Debug) std::cout << "  Is it a true jet? " << (truejet ? "yes" : "no") << std::endl;
         
-        //jet loop again but for only true jets
-            if(truejet){
+            //jet loop again but for only true jets that pass the jet cuts
+            if(truejet && JetCut){
 
                 //adding true jet four vectors to the missing energy four vector
-                    Missing_Energy_Vector = Missing_Energy_Vector + Vec_Jet; 
-                    if(Debug) std::cout << "  Missing Energy Vector (Jets) " << Missing_Energy_Vector.Pt() << std::endl;
+                Missing_Energy_Vector = Missing_Energy_Vector + Vec_Jet; 
+                if(Debug) std::cout << "  Missing Energy Vector (Jets) " << Missing_Energy_Vector.Pt() << std::endl;
 
-                if(JetCut){
-                    h_trueJet_Pt->Fill(Vec_Jet.Pt(), Event_Weight);
-                    h_trueJet_eta->Fill(Vec_Jet.Eta(), Event_Weight);
-                    h_trueJet_Et->Fill(TMath::Sqrt(Vec_Jet.Pt() * Vec_Jet.Pt() + Vec_Jet.M() * Vec_Jet.M()), Event_Weight);
-                }
-
-                // if(JetCut){ //need to work out how to plot this for 4mu events only
-                //     h4mu_jet_eta_seen->Fill(Vec_Jet.Eta(), Event_Weight);
-                //     h4mu_jet_pT_seen->Fill(Vec_Jet.Pt(), Event_Weight);
-                // }
+                h_trueJet_Pt->Fill(Vec_Jet.Pt(), Event_Weight);
+                h_trueJet_eta->Fill(Vec_Jet.Eta(), Event_Weight);
+                h_trueJet_Et->Fill(TMath::Sqrt(Vec_Jet.Pt() * Vec_Jet.Pt() + Vec_Jet.M() * Vec_Jet.M()), Event_Weight);
+                
             }
             
         }
          // Jet Loop
 
-
-        //------------------------------------------------------------------
-        // Lepton Loop
-        //------------------------------------------------------------------
         bool MuonCut = true; //flag to check if muons pass cuts
         double eta_min = -4.6; //eta range of the inner tracker
         double eta_max = 5.3;
         //momentum cut has been previously defined
-        
+
+        pT_cuts.clear(); //empties the vector once each event
+        for(int n = 0; n < n_cuts; ++n){
+            pT_cuts.push_back(true); //set all the flags equal to true
+        }
+
+        //------------------------------------------------------------------
+        // Lepton Loop
+        //------------------------------------------------------------------
         for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) {
 
-            GenParticle* lep = (GenParticle*) bTruthLepton->At(i);
+            GenParticle * lep = (GenParticle*) bTruthLepton->At(i);
 
             if(Debug){
-                std::cout << "Lepton " << i << " PID = " << lep->PID << " pT = " << lep->PT << 
-                " eta = " << lep->Eta << " phi = " << lep->Phi << " mass = " << lep->Mass << " energy = " << lep->E << " momentum = " << lep->P << std::endl;
+                std::cout << "Lepton " << i << " PID = " << lep->PID << " pT = " << lep->PT << " eta = " << lep->Eta
+                << " phi = " << lep->Phi << " mass = " << lep->Mass << " energy = " << lep->E << " momentum = " << 
+                lep->P << std::endl;
             }
 
             //defining the selection criteria for the muons
@@ -489,26 +532,33 @@ void Process(ExRootTreeReader * treeReader) {
                     lep->Eta < eta_max && 
                     lep->PT > pT_min) {
                         MuonCut = true;
-                    } else {
+                    } else{
                         MuonCut = false;
                     }
 
-                    if(!MuonCut) {
-                        event4mu_seen = false;
+                if(!MuonCut){
+                    event4mu_seen = false;
+                }
+
+                //flag changes to false if any of the muons in the event do not pass the pT cuts
+                for(int j = 0; j < cut_values.size(); ++j){
+                    if(lep->PT < cut_values[j]){
+                        pT_cuts[j] = false;
                     }
+                }
+
             }
         
             TLorentzVector Vec_Lepton1;
             Vec_Lepton1.SetPtEtaPhiM(lep->PT,lep->Eta,lep->Phi,lep->Mass);
             
-
             // Look for electrons or muons
-            if(abs(lep->PID) == 11 || abs(lep->PID) == 13 ) {
+            if(abs(lep->PID) == 11 || abs(lep->PID) == 13 ){
                     h_Lepton_Pt->Fill( Vec_Lepton1.Pt(), Event_Weight );  
             }
 
             //plotting histograms for muons that pass the cuts
-            if(abs(lep->PID) == 13 && MuonCut) {
+            if(abs(lep->PID) == 13 && MuonCut){
                 h_mu_eta -> Fill(Vec_Lepton1.Eta(), Event_Weight);
                 h_mu_Et -> Fill (TMath::Sqrt(Vec_Lepton1.Pt() * Vec_Lepton1.Pt() + Vec_Lepton1.M() * Vec_Lepton1.M()), Event_Weight);
                 h_mu_pT -> Fill(Vec_Lepton1.Pt(), Event_Weight);
@@ -551,11 +601,13 @@ void Process(ExRootTreeReader * treeReader) {
 
             //}
         } // Lepton Loop End
+
+        if(Debug) std::cout << "pT_cuts = " << pT_cuts[2] << std::endl;
         
         //parameters for reconstruction methods
-        double scattered_nu_E;
-        double Q_squared_e;
-        double y_e;
+        double scattered_nu_E; //energy of the scattered neutrino
+        double Q_squared_e; //Q^2 for the electron reconstruction method
+        double y_e; //inelasticity for electron reconstruction method
         double incoming_e_E = 60; //in GeV, incoming electron energy
 
         //another lepton loop but only including the 4mu decays
@@ -575,28 +627,11 @@ void Process(ExRootTreeReader * treeReader) {
             }
 
             TLorentzVector Vec_Neutrino;
-
-            std::vector<GenParticle*> all_muons;
+            std::vector<GenParticle*> all_muons; //makes an array which will contain all muons that are seen by the detector
 
             for(int i = 0; i < bTruthLepton->GetEntriesFast(); ++i) {
 
                 GenParticle * lep_mu = (GenParticle*) bTruthLepton->At(i);
-
-                // //defining the selection criteria for the muons
-                // if(abs(lep_mu->PID) == 13){
-                //     if(
-                //         lep_mu->Eta > eta_min &&
-                //         lep_mu->Eta < eta_max && 
-                //         lep_mu->PT > pT_min) {
-                //             MuonCut = true;
-                //         } else {
-                //             MuonCut = false;
-                //         }
-
-                //     if(!MuonCut){
-                //         event4mu_seen = false;
-                //     }
-                // }
 
                 TLorentzVector Vec_Lepton2;
                 Vec_Lepton2.SetPtEtaPhiM(lep_mu->PT,lep_mu->Eta,lep_mu->Phi,lep_mu->Mass);
@@ -606,7 +641,7 @@ void Process(ExRootTreeReader * treeReader) {
                     Missing_Energy_Vector = Missing_Energy_Vector + Vec_Lepton2;
                 }
                 
-                //plotting histograms for muons in only 4mu events
+                //plotting histograms for muons in 4mu events
                 if(abs(lep_mu->PID) == 13){
                     h4mu_mu_eta -> Fill(Vec_Lepton2.Eta(), Event_Weight);
                     h4mu_mu_Et -> Fill (TMath::Sqrt(Vec_Lepton2.Pt() * Vec_Lepton2.Pt() + Vec_Lepton2.M() * Vec_Lepton2.M()), Event_Weight);
@@ -643,8 +678,8 @@ void Process(ExRootTreeReader * treeReader) {
 
                         //calculating parameters for the kinematic reconstruction methods
                         scattered_nu_E = Vec_Lepton2.E();
-                        Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + cos(TMath::Pi() - Vec_Lepton2.Theta()));
-                        y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * sin((TMath::Pi() - Vec_Lepton2.Theta())/2) * sin((TMath::Pi() - Vec_Lepton2.Theta())/2);
+                        Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + TMath::Cos(TMath::Pi() - Vec_Lepton2.Theta()));
+                        y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * TMath::Power(TMath::Sin((TMath::Pi() - Vec_Lepton2.Theta())/2), 2);
                     }
 
                 }
@@ -652,9 +687,9 @@ void Process(ExRootTreeReader * treeReader) {
 
             if(Debug){
                 std::cout << " Missing Energy Four Vector: pT = " << Missing_Energy_Vector.Pt() << " Et = " << Missing_Energy_Vector.Et() 
-                << " E = " << Missing_Energy_Vector.E() << " eta = " << Missing_Energy_Vector.Eta() << " phi = " 
-                << Missing_Energy_Vector.Phi() << " mass = " << Missing_Energy_Vector.M() << " px = " << Missing_Energy_Vector.Px() << 
-                " py = " << Missing_Energy_Vector.Py() << " pz = " << Missing_Energy_Vector.Pz() << std::endl;
+                << " E = " << Missing_Energy_Vector.E() << " eta = " << Missing_Energy_Vector.Eta() << " phi = " << Missing_Energy_Vector.Phi() 
+                << " mass = " << Missing_Energy_Vector.M() << " px = " << Missing_Energy_Vector.Px() << " py = " << Missing_Energy_Vector.Py() 
+                << " pz = " << Missing_Energy_Vector.Pz() << std::endl;
             }
 
             if(event4mu_seen){
@@ -666,7 +701,7 @@ void Process(ExRootTreeReader * treeReader) {
 
                 //electron reconstruction method    
                 double root_s = 1700; // root(s) = 1.7TeV -> given in GeV, found from CDR update
-                double x_e = Q_squared_e/(root_s*root_s*y_e);
+                double x_e = Q_squared_e/(root_s*root_s*y_e); //Bjorken x for electron reconstruction method
 
                 if(Debug){
                     std::cout << "Electron Reconstruction Method: Q_squared = " << Q_squared_e << " x = " << x_e << " y = " << y_e << std::endl;
@@ -678,18 +713,16 @@ void Process(ExRootTreeReader * treeReader) {
                 h_logy_electron -> Fill(TMath::Log10(y_e), Event_Weight);
 
                 //hadron reconstruction method
-                //X is the hadronic final state vector which is the same as the missing energy vector, so I will use this
                 double Sigma = abs(Missing_Energy_Vector.E()) - abs(Missing_Energy_Vector.Pz());
-                double y_h = Sigma / (2 * incoming_e_E);
-                double Q_squared_h = (abs(Missing_Energy_Vector.Pt()) * abs(Missing_Energy_Vector.Pt())) / (1 - y_h);
-                double x_h = Q_squared_h/(root_s*root_s*y_h);
+                double y_h = Sigma / (2 * incoming_e_E); //inelasticity for hadron reconstruction method
+                double Q_squared_h = (abs(Missing_Energy_Vector.Pt()) * abs(Missing_Energy_Vector.Pt())) / (1 - y_h); //Q^2 for hadron reconstruction method
+                double x_h = Q_squared_h/(root_s*root_s*y_h); //Bjorken x for hadron reconstruction method
                 
                 if(Debug){
                     std::cout << "Hadron Reconstruction Method: Q_squared = " << Q_squared_h << " x = " << x_h << " y = " << y_h << std::endl;
-                    std::cout << "   Sigma = " << Sigma << " Missing Energy pz = " << Missing_Energy_Vector.Pz() << " Missing Energy pt = " << Missing_Energy_Vector.Pt() << " Hadronic Final State Energy = " << Missing_Energy_Vector.E() << std::endl;
+                    std::cout << "   Sigma = " << Sigma << " Missing Energy pz = " << Missing_Energy_Vector.Pz() << " Missing Energy pt = " 
+                    << Missing_Energy_Vector.Pt() << " Hadronic Final State Energy = " << Missing_Energy_Vector.E() << std::endl;
                 } 
-                
-                //double TMath::Log10(Q_squared_e), TMath::Log10(Q_squared_h), TMath::Log10(x_e), TMath::Log10(x_h), TMath::Log10(y_e), TMath::Log10(y_h);
             
                 x_Qsquared_hadron -> Fill(x_h, Q_squared_h);
                 log_Qsquared_plot -> Fill(TMath::Log10(Q_squared_e), TMath::Log10(Q_squared_h));
@@ -700,93 +733,104 @@ void Process(ExRootTreeReader * treeReader) {
                 h_logy_hadron -> Fill(TMath::Log10(y_h), Event_Weight);
 
                 //reconstructing Z mass from lepton pairs
-                    std::vector<TLorentzVector> muons; //makes an array which will contain the Lorentz vectors for muons
-                    TLorentzVector reco_Higgs;
-                    reco_Higgs.SetPtEtaPhiM(0,0,0,0);
-                    std::vector<TLorentzVector> antimuons; //makes an array which will contain the Lorentz vectors for antimuons
-                    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
-                    TLorentzVector Temp_Vector;
-                    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
-                    std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
+                std::vector<TLorentzVector> muons; //makes an array which will contain the Lorentz vectors for muons
+                TLorentzVector reco_Higgs;
+                reco_Higgs.SetPtEtaPhiM(0,0,0,0);
+                std::vector<TLorentzVector> antimuons; //makes an array which will contain the Lorentz vectors for antimuons
+                std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
+                TLorentzVector Temp_Vector;
+                std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
+                std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
                     
-                    for(int i = 0; i < all_muons.size(); ++i){
+                for(int i = 0; i < all_muons.size(); ++i){
 
-                        Temp_Vector.SetPtEtaPhiM(all_muons[i]->PT, all_muons[i]->Eta, all_muons[i]->Phi, all_muons[i]->Mass);
-                        if(all_muons[i]->PID==13){
-                            muons.push_back(Temp_Vector);
-                        }
-                        else if(all_muons[i]->PID==-13){
-                            antimuons.push_back(Temp_Vector);
-                        }
+                    Temp_Vector.SetPtEtaPhiM(all_muons[i]->PT, all_muons[i]->Eta, all_muons[i]->Phi, all_muons[i]->Mass);
+                    if(all_muons[i]->PID==13){
+                        muons.push_back(Temp_Vector);
                     }
-
-                    reco_Higgs = muons[0] + muons[1] + antimuons[0] + antimuons[1];
-
-                    recoZ.push_back(muons[0]+antimuons[0]);
-                    recoZ.push_back(muons[0]+antimuons[1]);
-                    recoZ.push_back(muons[1]+antimuons[0]);
-                    recoZ.push_back(muons[1]+antimuons[1]); //we now have a list of the Lorentz Vectors for all Z bosons from every combination of lepton pairs
-
-                    for(int j = 0; j < recoZ.size(); ++j){
-                        recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
-                    } 
-
-                    if(Debug){
-                        std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
+                    else if(all_muons[i]->PID==-13){
+                        antimuons.push_back(Temp_Vector);
                     }
+                }
 
-                    double Zmass = 91.1876; //in GeV
+                reco_Higgs = muons[0] + muons[1] + antimuons[0] + antimuons[1];
 
-                    for(int k = 0; k < recoZmass.size(); ++k){
-                        double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
-                        massdiff.push_back(diff);
-                    } 
+                recoZ.push_back(muons[0]+antimuons[0]);
+                recoZ.push_back(muons[0]+antimuons[1]);
+                recoZ.push_back(muons[1]+antimuons[0]);
+                recoZ.push_back(muons[1]+antimuons[1]); //we now have a list of the Lorentz Vectors from every combination of lepton pairs
 
-                    if(Debug){
-                        std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
+                for(int j = 0; j < recoZ.size(); ++j){
+                    recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
+                } 
+
+                if(Debug){
+                    std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
+                }
+
+                double Zmass = 91.1876; //actual Z boson mass in GeV
+
+                for(int k = 0; k < recoZmass.size(); ++k){
+                    double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
+                    massdiff.push_back(diff);
+                } 
+
+                if(Debug){
+                    std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
+                }
+
+                //the on-shell Z boson is the one that is closest to the known Z mass
+                //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
+                double min = massdiff[0];
+                for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
+                    if(massdiff[l] < min){
+                        min = massdiff[l];
                     }
+                }
 
-                    double min = massdiff[0];
-                    for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
-                        if(massdiff[l] < min){
-                            min = massdiff[l];
-                        }
+                double Z_onshell;
+                double Z_offshell;
+
+                //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
+                if(min == massdiff[0]){
+                    Z_onshell = recoZmass[0];
+                    Z_offshell = recoZmass[3];
+                }
+
+                if(min == massdiff[1]){
+                    Z_onshell = recoZmass[1];
+                    Z_offshell = recoZmass[2];
+                }
+
+                if(min == massdiff[2]){
+                    Z_onshell = recoZmass[2];
+                    Z_offshell = recoZmass[1];
+                }
+
+                if(min == massdiff[3]){
+                    Z_onshell = recoZmass[3];
+                    Z_offshell = recoZmass[0];
+                }
+
+                if(Debug){
+                    std::cout << " Smallest Mass Diff: " << min << std::endl;
+                    std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
+                    std::cout << " Higgs Mass: " << reco_Higgs.M() << std::endl;
+                } 
+
+                h_Higgs_reco->Fill(reco_Higgs.M(), Event_Weight);
+                h_ZZ_mass_reco->Fill(Z_onshell, Event_Weight);
+                h_ZZ_mass_reco->Fill(Z_offshell, Event_Weight);
+                h_Z_reco->Fill(Z_onshell, Event_Weight);
+                h_Zstar_reco->Fill(Z_offshell, Event_Weight);
+
+                //plots for significance
+                    //fills each histogram with the reconstructed Higgs mass if the flag for that event is true
+                for(int i = 0; i < pT_cuts.size(); ++i){
+                    if(pT_cuts[i] == true){
+                        h_varycut[i] -> Fill(reco_Higgs.M());
                     }
-
-                    double Z_onshell;
-                    double Z_offshell;
-
-                    if(min == massdiff[0]){ //these if statements are all determining which Z is on shell and which is of shell based on the lepton pairings
-                        Z_onshell = recoZmass[0];
-                        Z_offshell = recoZmass[3];
-                    }
-
-                    if(min == massdiff[1]){
-                        Z_onshell = recoZmass[1];
-                        Z_offshell = recoZmass[2];
-                    }
-
-                    if(min == massdiff[2]){
-                        Z_onshell = recoZmass[2];
-                        Z_offshell = recoZmass[1];
-                    }
-
-                    if(min == massdiff[3]){
-                        Z_onshell = recoZmass[3];
-                        Z_offshell = recoZmass[0];
-                    }
-                
-                    if(Debug){
-                        std::cout << " Smallest Mass Diff: " << min << std::endl;
-                        std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
-                        std::cout << " Higgs Mass: " << reco_Higgs.M() << std::endl;
-                    } 
-
-                    h_Higgs_reco->Fill(reco_Higgs.M(), Event_Weight);
-                    h_ZZ_mass_reco->Fill(Z_onshell, Event_Weight);
-                    h_ZZ_mass_reco->Fill(Z_offshell, Event_Weight);
-                    h_Z_reco->Fill(Z_onshell, Event_Weight);
-                    h_Zstar_reco->Fill(Z_offshell, Event_Weight);
+                }
             } 
         
         }
@@ -798,7 +842,6 @@ void Process(ExRootTreeReader * treeReader) {
         for(int i = 0; i <bTruthWZ->GetEntriesFast(); ++i){
             
             GenParticle* boson = (GenParticle*) bTruthWZ->At(i);
-
 
             if(Debug) std::cout << "Boson " << i << " pT = " << boson->PT << " eta = " << boson->Eta << " phi = " 
             << boson->Phi << " mass = " << boson->Mass << std::endl;

@@ -154,10 +154,15 @@ TH1D * h_Zstar_reco;
 //event weight
 TH1D * h_eventweight;
 
+//mass reconstruction cuts
+//TH1D * h_Zstar_cuts;
+std::vector<TH1D*> h_varycut;
+TH1D * h_new;
+
 
 ExRootTreeReader * InitReader(const TString FilePath);
 
-void Process(ExRootTreeReader * treeReader);
+void Process(ExRootTreeReader * treeReader); //removed bool signal from the arguments
 
 void ClearBranches();
 
