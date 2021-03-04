@@ -156,7 +156,7 @@ TH1D * h_eventweight;
 
 //mass reconstruction cuts
 //TH1D * h_Zstar_cuts;
-std::vector<TH1D*> h_varycut;
+std::vector<TH1D*> h_pT_cuts;
 TH1D * h_new;
 
 
@@ -167,3 +167,7 @@ void Process(ExRootTreeReader * treeReader); //removed bool signal from the argu
 void ClearBranches();
 
 int main(int argc, char* argv[]);
+
+std::vector<double> Hadron_Reconstruction(TLorentzVector Missing_Energy_Vector);
+std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts);
+std::vector<bool> Initialise_Flags(int n_cuts);

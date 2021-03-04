@@ -8,6 +8,7 @@
 #include "TF1.h"
 #include "TEfficiency.h"
 #include <TString.h>
+#include "utilities.cxx"
 
 void signal_bkgd(){
     TString signal_file = "signal.root";
@@ -59,14 +60,15 @@ void signal_bkgd(){
     //------------------------
     //calculating significance
     //------------------------
-    int n_cuts = 20;
+    int n_pT_cuts = 20;
     double min_cut = 10.0; //GeV
     double step_cut = 2.0; //GeV
-    std::vector<double> cut_values;
+    std::vector<double> pT_cut_values = Define_Cut_Values(20, 10.0, 2.0);
 
-    std::vector<TString> h_varycuts;
-    for(int i = 0; i < n_cuts; ++i){
-        h_varycuts.pushback("Mass Reco Cuts/h_varycut_cut"+i);
+    std::vector<TString> h_pT_cuts;
+    TString suffix = "_cut";
+    for(int i = 0; i < n_pT_cuts; ++i){
+        h_pT_cuts.push_back("Mass Reco Cuts/h_pT" + suffix + std::to_string(i));
     }
 
     TH1D * h_signal_cuts;
@@ -80,15 +82,15 @@ void signal_bkgd(){
     double ratio;
     int bin_pt;
 
-    TH1D * h_signif_pT = new TH1D("h_sig_pT", "; Muon pT Cut [GeV]; Significance;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
-    TH1D * h_ratio_pT = new TH1D("h_ratio_pT", "; Muon pT Cut [GeV]; Signal to Background Ratio;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
+    TH1D * h_signif_pT = new TH1D("h_sig_pT", "; Muon pT Cut [GeV]; Significance;", n_pT_cuts, min_cut, min_cut + n_pT_cuts*step_cut);
+    TH1D * h_ratio_pT = new TH1D("h_ratio_pT", "; Muon pT Cut [GeV]; Signal to Background Ratio;", n_pT_cuts, min_cut, min_cut + n_pT_cuts*step_cut);
 
-    for(int n = 0; n < n_cuts; ++n){
-        h_signal_cuts = (TH1D*) signal -> Get(h_varycuts[n]);
-        h_bkgd_cuts = (TH1D*) bkgd -> Get(h_varycuts[n]);
+    for(int n = 0; n < n_pT_cuts; ++n){
+        h_signal_cuts = (TH1D*) signal -> Get(h_pT_cuts[n]);
+        h_bkgd_cuts = (TH1D*) bkgd -> Get(h_pT_cuts[n]);
 
-        higgs_min = h_signal_cuts -> FindBin(120);
-        higgs_max = h_signal_cuts -> FindBin(130);
+        higgs_min = h_signal_cuts -> FindBin(100);
+        higgs_max = h_signal_cuts -> FindBin(150);
         signal_data = h_signal_cuts -> Integral(higgs_min, higgs_max);
         bkgd_data = h_bkgd_cuts -> Integral(higgs_min, higgs_max);
         significance = signal_data/TMath::Sqrt(bkgd_data);
@@ -97,9 +99,7 @@ void signal_bkgd(){
         std::cout << "significance = " << significance << std::endl;
         std::cout << "signal to background ratio = " << ratio << std::endl;
 
-        cut_values.push_back(min_cut + n*step_cut);
-
-        bin_pt = h_signif_pT -> FindBin(cut_values.at(n));
+        bin_pt = h_signif_pT -> FindBin(pT_cut_values.at(n));
 
         bool infinity_sig = isinf(significance);
         bool nan_sig = isnan(significance);

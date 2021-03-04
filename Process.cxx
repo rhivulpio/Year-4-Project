@@ -1,5 +1,6 @@
 
 #include "Process.h"
+#include "utilities.cxx"
 
 bool Debug = false;
 //const TString signal_inputfile = "/disk/moose/general/asc/Y4_LHeC_2021/Samples_Py8303_Delphes3.4.3pre06/LHeC_CC_H4l.Delphes.root";
@@ -315,13 +316,10 @@ int main(int argc, char* argv[]) {
     h_eventweight->Write();
 
     OutputFile->cd("Mass Reco Cuts");
-    //std::cout << h_varycut << std::endl;
-    for(int i = 0; i < h_varycut.size(); ++i){
-        h_varycut[i]->Write();
+    for(int i = 0; i < h_pT_cuts.size(); ++i){
+        h_pT_cuts[i]->Write();
     }
-    // h_Zstar_cuts->Write();
 
-    
     OutputFile->Close();
 
     std::cout << "Tidy..." << std::endl;
@@ -382,23 +380,10 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
 
     std::cout << "sf signal = " << sf_signal << " sf bkgd = " << sf_bkgd << std::endl;
 
-    //defining the cut parameters for the minimum pT cuts
-    int n_cuts = 20;
-    double min_cut = 10.0; //GeV
-    double step_cut = 2.0; //GeV
-
-    std::vector<double> cut_values; //defines an array which will contain all of the minimum pT cut values
     std::vector<bool> pT_cuts; //defines an array which will contain a flag to indicate whether each event passes each minimum pT cut
 
-    for(int n = 0; n < n_cuts; ++n){
-        TString suffix = "_cut";
-        suffix += n;
-
-        TH1D * h_new = new TH1D("h_varycut"+suffix," ; m_{4l} [GeV]; Events", 50, 50, 250);
-        h_varycut.push_back(h_new);
-
-        cut_values.push_back(min_cut + n*step_cut);
-    }  
+    h_pT_cuts = Define_Histograms("h_pT", 20);
+    std::vector<double> pT_cut_values = Define_Cut_Values(20, 10.0, 2.0);
     
     // Loop over all events
     for(Int_t entry = 0; entry < numberOfEntries; ++entry) {
@@ -507,10 +492,12 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
         double eta_max = 5.3;
         //momentum cut has been previously defined
 
-        pT_cuts.clear(); //empties the vector once each event
-        for(int n = 0; n < n_cuts; ++n){
-            pT_cuts.push_back(true); //set all the flags equal to true
-        }
+        std::vector<bool> pT_cut_flags = Initialise_Flags(20);
+        
+        // pT_cuts.clear(); //empties the vector once each event
+        // for(int n = 0; n < h_pT_cuts.size(); ++n){
+        //     pT_cuts.push_back(true); //set all the flags equal to true
+        // }
 
         //------------------------------------------------------------------
         // Lepton Loop
@@ -541,9 +528,9 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                 }
 
                 //flag changes to false if any of the muons in the event do not pass the pT cuts
-                for(int j = 0; j < cut_values.size(); ++j){
-                    if(lep->PT < cut_values[j]){
-                        pT_cuts[j] = false;
+                for(int j = 0; j < pT_cut_values.size(); ++j){
+                    if(lep->PT < pT_cut_values[j]){
+                        pT_cut_flags[j] = false;
                     }
                 }
 
@@ -701,6 +688,7 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
 
                 //electron reconstruction method    
                 double root_s = 1700; // root(s) = 1.7TeV -> given in GeV, found from CDR update
+                double incoming_e_E = 60; //in GeV, incoming electron energy
                 double x_e = Q_squared_e/(root_s*root_s*y_e); //Bjorken x for electron reconstruction method
 
                 if(Debug){
@@ -711,24 +699,17 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                 h_logQsquared_electron -> Fill(TMath::Log10(Q_squared_e), Event_Weight);
                 h_logx_electron -> Fill(TMath::Log10(x_e), Event_Weight);
                 h_logy_electron -> Fill(TMath::Log10(y_e), Event_Weight);
-
-                //hadron reconstruction method
-                double Sigma = abs(Missing_Energy_Vector.E()) - abs(Missing_Energy_Vector.Pz());
-                double y_h = Sigma / (2 * incoming_e_E); //inelasticity for hadron reconstruction method
-                double Q_squared_h = (abs(Missing_Energy_Vector.Pt()) * abs(Missing_Energy_Vector.Pt())) / (1 - y_h); //Q^2 for hadron reconstruction method
-                double x_h = Q_squared_h/(root_s*root_s*y_h); //Bjorken x for hadron reconstruction method
                 
-                if(Debug){
-                    std::cout << "Hadron Reconstruction Method: Q_squared = " << Q_squared_h << " x = " << x_h << " y = " << y_h << std::endl;
-                    std::cout << "   Sigma = " << Sigma << " Missing Energy pz = " << Missing_Energy_Vector.Pz() << " Missing Energy pt = " 
-                    << Missing_Energy_Vector.Pt() << " Hadronic Final State Energy = " << Missing_Energy_Vector.E() << std::endl;
-                } 
-            
-                x_Qsquared_hadron -> Fill(x_h, Q_squared_h);
-                log_Qsquared_plot -> Fill(TMath::Log10(Q_squared_e), TMath::Log10(Q_squared_h));
+                std::vector<double> output = Hadron_Reconstruction(Missing_Energy_Vector);
+                double Q2_h = output[0];
+                double x_h = output[1];
+                double y_h = output[2];
+
+                x_Qsquared_hadron -> Fill(x_h, Q2_h);
+                log_Qsquared_plot -> Fill(TMath::Log10(Q_squared_e), TMath::Log10(Q2_h));
                 log_x_plot -> Fill(TMath::Log10(x_e), TMath::Log10(x_h));
                 log_y_plot -> Fill(TMath::Log10(y_e), TMath::Log10(y_h));
-                h_logQsquared_hadron -> Fill(TMath::Log10(Q_squared_h), Event_Weight);
+                h_logQsquared_hadron -> Fill(TMath::Log10(Q2_h), Event_Weight);
                 h_logx_hadron -> Fill(TMath::Log10(x_h), Event_Weight);
                 h_logy_hadron -> Fill(TMath::Log10(y_h), Event_Weight);
 
@@ -828,7 +809,7 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                     //fills each histogram with the reconstructed Higgs mass if the flag for that event is true
                 for(int i = 0; i < pT_cuts.size(); ++i){
                     if(pT_cuts[i] == true){
-                        h_varycut[i] -> Fill(reco_Higgs.M());
+                        h_pT_cuts[i] -> Fill(reco_Higgs.M());
                     }
                 }
             } 
@@ -890,6 +871,39 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
     }
     
 }
-    
 
      // Loop over all events
+
+std::vector<double> Hadron_Reconstruction(TLorentzVector Missing_Energy_Vector){
+    std::vector<double> output;
+
+    double root_s = 1700; // root(s) = 1.7TeV -> given in GeV, found from CDR update
+    double incoming_e_E = 60; //in GeV, incoming electron energy
+
+    double Sigma = abs(Missing_Energy_Vector.E()) - abs(Missing_Energy_Vector.Pz());
+    double y_h = Sigma / (2 * incoming_e_E); //inelasticity for hadron reconstruction method
+    double Q_squared_h = (TMath::Power(abs(Missing_Energy_Vector.Pt()), 2)) / (1 - y_h); //Q^2 for hadron reconstruction method
+    double x_h = Q_squared_h/(TMath::Power(root_s, 2) * y_h); //Bjorken x for hadron reconstruction method
+
+    output = {Q_squared_h, x_h, y_h};
+    return output;
+}
+
+std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts){
+	TString suffix = "_cut";
+    std::vector<TH1D*> h_varycuts;
+	for(int n = 0; n < n_cuts; ++n){	
+		TH1D * h_new = new TH1D(hist_name + suffix + std::to_string(n), " ; m_{4l} [Gev]; Events", 50, 50, 250);
+		h_varycuts.push_back(h_new);
+	}
+    return h_varycuts;
+}
+
+std::vector<bool> Initialise_Flags(int n_cuts){
+    std::vector<bool> cut_flags;
+    for(int n = 0; n < n_cuts; ++n){
+        cut_flags.push_back(true);
+    }
+    return cut_flags;
+}
+
