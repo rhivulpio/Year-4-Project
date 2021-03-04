@@ -316,9 +316,10 @@ int main(int argc, char* argv[]) {
     h_eventweight->Write();
 
     OutputFile->cd("Mass Reco Cuts");
-    for(int i = 0; i < h_pT_cuts.size(); ++i){
-        h_pT_cuts[i]->Write();
-    }
+    Write_Histogram(h_pT_cuts);
+    // for(int i = 0; i < h_pT_cuts.size(); ++i){
+    //     h_pT_cuts[i]->Write();
+    // }
 
     OutputFile->Close();
 
@@ -378,7 +379,7 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
     double sf_signal = luminosity_LHeC/luminosity_signal; //scale factor
     double sf_bkgd = luminosity_LHeC/luminosity_bkgd;
 
-    std::cout << "sf signal = " << sf_signal << " sf bkgd = " << sf_bkgd << std::endl;
+    std::cout << "sf signal = " << sf_bkgd << " sf bkgd = " << sf_bkgd << std::endl;
 
     std::vector<bool> pT_cuts; //defines an array which will contain a flag to indicate whether each event passes each minimum pT cut
 
@@ -527,12 +528,7 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                     event4mu_seen = false;
                 }
 
-                //flag changes to false if any of the muons in the event do not pass the pT cuts
-                for(int j = 0; j < pT_cut_values.size(); ++j){
-                    if(lep->PT < pT_cut_values[j]){
-                        pT_cut_flags[j] = false;
-                    }
-                }
+                pT_cut_flags = Check_Cuts(pT_cut_values, lep->PT, pT_cut_flags);
 
             }
         
@@ -570,33 +566,8 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
             if(abs(lep->PID) == 11){ 
                 event4mu = false;
             }
-
-
-
-            //boson loop inside lepton loop in order to plot acceptance as a function of Higgs properties
-            //for(int i = 0; i <bTruthWZ->GetEntriesFast(); ++i){
-            
-            //    GenParticle* boson = (GenParticle*) bTruthWZ->At(i);
-            //    TLorentzVector Vec_Boson1;
-            //    Vec_Boson1.SetPtEtaPhiM(boson->PT,boson->Eta,boson->Phi,boson->Mass);
-
-            //    if(abs(boson->Mass)==125){
-            //        e_H_eta->FillWeighted(MuonCut, Event_Weight, Vec_Boson1.Eta());
-            //        e_H_Et->FillWeighted(MuonCut, Event_Weight, TMath::Sqrt(Vec_Boson1.Pt() * Vec_Boson1.Pt() + Vec_Boson1.M() * Vec_Boson1.M()));
-            //        e_H_pT->FillWeighted(MuonCut, Event_Weight, Vec_Boson1.Pt());
-            //    }
-
-            //}
         } // Lepton Loop End
-
-        if(Debug) std::cout << "pT_cuts = " << pT_cuts[2] << std::endl;
         
-        //parameters for reconstruction methods
-        // double scattered_nu_E; //energy of the scattered neutrino
-        // double Q_squared_e; //Q^2 for the electron reconstruction method
-        // double y_e; //inelasticity for electron reconstruction method
-        // double incoming_e_E = 60; //in GeV, incoming electron energy
-
         //another lepton loop but only including the 4mu decays
         if(event4mu){
 
@@ -662,11 +633,6 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                     if(abs(lep_mu->PID) == 12){
                         h4mu_nu_pT_seen->Fill(Vec_Lepton2.Pt(), Event_Weight);
                         h4mu_nu_eta_seen->Fill(Vec_Lepton2.Eta(), Event_Weight); 
-
-                        //calculating parameters for the kinematic reconstruction methods
-                        // scattered_nu_E = Vec_Lepton2.E();
-                        // Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + TMath::Cos(TMath::Pi() - Vec_Lepton2.Theta()));
-                        // y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * TMath::Power(TMath::Sin((TMath::Pi() - Vec_Lepton2.Theta())/2), 2);
                     }
 
                 }
@@ -807,11 +773,14 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
 
                 //plots for significance
                     //fills each histogram with the reconstructed Higgs mass if the flag for that event is true
-                for(int i = 0; i < pT_cuts.size(); ++i){
-                    if(pT_cuts[i] == true){
-                        h_pT_cuts[i] -> Fill(reco_Higgs.M());
-                    }
-                }
+                Fill_Histogram(h_pT_cuts, pT_cut_flags, reco_Higgs.M());    
+
+
+                // for(int i = 0; i < pT_cuts.size(); ++i){
+                //     if(pT_cuts[i] == true){
+                //         h_pT_cuts[i] -> Fill(reco_Higgs.M());
+                //     }
+                // }
             } 
         
         }
@@ -924,5 +893,28 @@ std::vector<bool> Initialise_Flags(int n_cuts){
         cut_flags.push_back(true);
     }
     return cut_flags;
+}
+
+std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_property, std::vector<bool> cut_flags){
+    for(int i = 0; i < cut_values.size(); ++i){
+        if(lepton_property < cut_values[i]){
+            cut_flags[i] = false;
+        }
+    }
+    return cut_flags;
+}
+
+void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs){
+    for(int i = 0; i < cut_flags.size(); ++i){
+        if(cut_flags[i] == true){
+            h_varycuts[i] -> Fill(reco_Higgs);
+        }
+    }
+}
+
+void Write_Histogram(std::vector<TH1D*> h_varycuts){
+    for(int i = 0; i < h_varycuts.size(); ++i){
+        h_varycuts[i]->Write();
+    }
 }
 

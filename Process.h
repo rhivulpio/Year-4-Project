@@ -172,3 +172,6 @@ std::vector<double> Electron_Reconstruction(TLorentzVector nu);
 std::vector<double> Hadron_Reconstruction(TLorentzVector Missing_Energy_Vector);
 std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts);
 std::vector<bool> Initialise_Flags(int n_cuts);
+std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_property, std::vector<bool> cut_flags);
+void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs);
+void Write_Histogram(std::vector<TH1D*> h_varycuts);
