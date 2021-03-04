@@ -592,10 +592,10 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
         if(Debug) std::cout << "pT_cuts = " << pT_cuts[2] << std::endl;
         
         //parameters for reconstruction methods
-        double scattered_nu_E; //energy of the scattered neutrino
-        double Q_squared_e; //Q^2 for the electron reconstruction method
-        double y_e; //inelasticity for electron reconstruction method
-        double incoming_e_E = 60; //in GeV, incoming electron energy
+        // double scattered_nu_E; //energy of the scattered neutrino
+        // double Q_squared_e; //Q^2 for the electron reconstruction method
+        // double y_e; //inelasticity for electron reconstruction method
+        // double incoming_e_E = 60; //in GeV, incoming electron energy
 
         //another lepton loop but only including the 4mu decays
         if(event4mu){
@@ -664,9 +664,9 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                         h4mu_nu_eta_seen->Fill(Vec_Lepton2.Eta(), Event_Weight); 
 
                         //calculating parameters for the kinematic reconstruction methods
-                        scattered_nu_E = Vec_Lepton2.E();
-                        Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + TMath::Cos(TMath::Pi() - Vec_Lepton2.Theta()));
-                        y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * TMath::Power(TMath::Sin((TMath::Pi() - Vec_Lepton2.Theta())/2), 2);
+                        // scattered_nu_E = Vec_Lepton2.E();
+                        // Q_squared_e = 2 * incoming_e_E * abs(scattered_nu_E) * (1 + TMath::Cos(TMath::Pi() - Vec_Lepton2.Theta()));
+                        // y_e = 1 - (abs(scattered_nu_E)/incoming_e_E) * TMath::Power(TMath::Sin((TMath::Pi() - Vec_Lepton2.Theta())/2), 2);
                     }
 
                 }
@@ -686,27 +686,27 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
                 h_ME_nu_eta -> Fill(Vec_Neutrino.Eta(), Missing_Energy_Vector.Eta());
                 h_ME_nu_phi -> Fill(Vec_Neutrino.Phi(), Missing_Energy_Vector.Phi());
 
-                //electron reconstruction method    
-                double root_s = 1700; // root(s) = 1.7TeV -> given in GeV, found from CDR update
-                double incoming_e_E = 60; //in GeV, incoming electron energy
-                double x_e = Q_squared_e/(root_s*root_s*y_e); //Bjorken x for electron reconstruction method
+                std::vector<double> electron_output = Electron_Reconstruction(Vec_Neutrino);
+                double Q2_e = electron_output[0];
+                double x_e = electron_output[1];
+                double y_e = electron_output[2];
 
                 if(Debug){
-                    std::cout << "Electron Reconstruction Method: Q_squared = " << Q_squared_e << " x = " << x_e << " y = " << y_e << std::endl;
+                    std::cout << "Electron Reconstruction Method: Q_squared = " << Q2_e << " x = " << x_e << " y = " << y_e << std::endl;
                 }
 
-                x_Qsquared_electron -> Fill(x_e, Q_squared_e);
-                h_logQsquared_electron -> Fill(TMath::Log10(Q_squared_e), Event_Weight);
+                x_Qsquared_electron -> Fill(x_e, Q2_e);
+                h_logQsquared_electron -> Fill(TMath::Log10(Q2_e), Event_Weight);
                 h_logx_electron -> Fill(TMath::Log10(x_e), Event_Weight);
                 h_logy_electron -> Fill(TMath::Log10(y_e), Event_Weight);
                 
-                std::vector<double> output = Hadron_Reconstruction(Missing_Energy_Vector);
-                double Q2_h = output[0];
-                double x_h = output[1];
-                double y_h = output[2];
+                std::vector<double> hadron_output = Hadron_Reconstruction(Missing_Energy_Vector);
+                double Q2_h = hadron_output[0];
+                double x_h = hadron_output[1];
+                double y_h = hadron_output[2];
 
                 x_Qsquared_hadron -> Fill(x_h, Q2_h);
-                log_Qsquared_plot -> Fill(TMath::Log10(Q_squared_e), TMath::Log10(Q2_h));
+                log_Qsquared_plot -> Fill(TMath::Log10(Q2_e), TMath::Log10(Q2_h));
                 log_x_plot -> Fill(TMath::Log10(x_e), TMath::Log10(x_h));
                 log_y_plot -> Fill(TMath::Log10(y_e), TMath::Log10(y_h));
                 h_logQsquared_hadron -> Fill(TMath::Log10(Q2_h), Event_Weight);
@@ -874,18 +874,37 @@ void Process(ExRootTreeReader * treeReader) { //removed bool signal from the arg
 
      // Loop over all events
 
+std::vector<double> Electron_Reconstruction(TLorentzVector nu){
+    std::vector<double> output;
+
+    double root_s = 1700; // root(s) = 1.7TeV -> given in GeV, found from CDR update
+    double e_E = 60; //in GeV, incoming electron energy
+    double nu_E = abs(nu.E()); //scattered neutrino energy
+    double angle = TMath::Pi() - nu.Theta();
+
+    double Q2 = 2 * e_E * nu_E * (1 + TMath::Cos(angle));
+    double y = 1 - (nu_E/e_E) * TMath::Power(TMath::Sin((angle)/2), 2);
+    double x = Q2/(TMath::Power(root_s, 2) * y);
+
+    output = {Q2, x, y};
+    return output;
+}
+
 std::vector<double> Hadron_Reconstruction(TLorentzVector Missing_Energy_Vector){
     std::vector<double> output;
 
     double root_s = 1700; // root(s) = 1.7TeV -> given in GeV, found from CDR update
     double incoming_e_E = 60; //in GeV, incoming electron energy
+    double E = abs(Missing_Energy_Vector.E());
+    double pz = abs(Missing_Energy_Vector.Pz());
+    double pt = abs(Missing_Energy_Vector.Pt());
 
-    double Sigma = abs(Missing_Energy_Vector.E()) - abs(Missing_Energy_Vector.Pz());
-    double y_h = Sigma / (2 * incoming_e_E); //inelasticity for hadron reconstruction method
-    double Q_squared_h = (TMath::Power(abs(Missing_Energy_Vector.Pt()), 2)) / (1 - y_h); //Q^2 for hadron reconstruction method
-    double x_h = Q_squared_h/(TMath::Power(root_s, 2) * y_h); //Bjorken x for hadron reconstruction method
+    double Sigma = E - pz;
+    double y = Sigma / (2 * incoming_e_E); //inelasticity for hadron reconstruction method
+    double Q2 = (TMath::Power(pt, 2)) / (1 - y); //Q^2 for hadron reconstruction method
+    double x = Q2/(TMath::Power(root_s, 2) * y); //Bjorken x for hadron reconstruction method
 
-    output = {Q_squared_h, x_h, y_h};
+    output = {Q2, x, y};
     return output;
 }
 

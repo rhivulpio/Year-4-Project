@@ -168,6 +168,7 @@ void ClearBranches();
 
 int main(int argc, char* argv[]);
 
+std::vector<double> Electron_Reconstruction(TLorentzVector nu);
 std::vector<double> Hadron_Reconstruction(TLorentzVector Missing_Energy_Vector);
 std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts);
 std::vector<bool> Initialise_Flags(int n_cuts);
