@@ -64,7 +64,7 @@ void signal_bkgd(){
     //------------------------
     //calculating significance
     //------------------------
-    int n_pT_cuts = 20;
+    int n_pT_cuts =40;
     double min_cut = 10.0; //GeV
     double step_cut = 2.0; //GeV
     //std::vector<double> pT_cut_values = Define_Cut_Values(20, 10.0, 2.0);
@@ -77,7 +77,8 @@ void signal_bkgd(){
     // TH1D * h_signif;
     // TH1D * h_ratio;
 
-    Significance_Plots("pT", "GeV", 20, 10.0, 2.0);
+    Significance_Plots("pT", "GeV", 40, 10.0, 2.0);
+    Significance_Plots("Zstar", "GeV", 40, 10.0, 5.0);
 
     // Make_Histograms(h_signif_pT, h_ratio_pT, "pT", "GeV", 20, 10.0, 2.0);
     // output = Calculate_Parameters(h_signal_pT, h_bkgd_pT, h_pT_cuts, 20);
@@ -127,11 +128,11 @@ void signal_bkgd(){
 
 }
 
-void Make_Histograms(TH1D * h_signif, TH1D * h_ratio, TString property, TString units, int n_cuts, double min_cut, double step_cut){
-    std::vector<TH1D*> output;
-    h_signif = new TH1D("h_signif_"+property, "; Muon" + property + "Cut [" + units + "]; Significance;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
-    h_ratio = new TH1D("h_ratio_"+property, "; Muon" + property + "Cut [" + units + "]; Signal to Background Ratio;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
-}
+// void Make_Histograms(TH1D * h_signif, TH1D * h_ratio, TString property, TString units, int n_cuts, double min_cut, double step_cut){
+//     std::vector<TH1D*> output;
+//     h_signif = new TH1D("h_signif_"+property, "; Muon" + property + "Cut [" + units + "]; Significance;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
+//     h_ratio = new TH1D("h_ratio_"+property, "; Muon" + property + "Cut [" + units + "]; Signal to Background Ratio;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
+// }
 
 // std::vector<double> Calculate_Parameters(TH1D * h_signal, TH1D * h_bkgd, std::vector<TString> h_varycuts, int n_cuts){
     // std::vector<double> output;
@@ -166,8 +167,8 @@ void Make_Histograms(TH1D * h_signif, TH1D * h_ratio, TString property, TString 
 void Significance_Plots(TString property, TString units, int n_cuts, double min_cut, double step_cut){
     std::vector<TString> h_varycuts = Generate_Histogram_List(n_cuts, property);
 
-    TH1D * h_signif = new TH1D("h_signif_"+property, "; Muon " + property + " Cut [" + units + "]; Significance;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
-    TH1D * h_ratio = new TH1D("h_ratio_"+property, "; Muon " + property + " Cut [" + units + "]; Signal to Background Ratio;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
+    TH1D * h_signif = new TH1D("h_signif_"+property, "; " + property + " Cut [" + units + "]; Significance;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
+    TH1D * h_ratio = new TH1D("h_ratio_"+property, "; " + property + " Cut [" + units + "]; Signal to Background Ratio;", n_cuts, min_cut, min_cut + n_cuts*step_cut);
 
     Int_t higgs_min;
     Int_t higgs_max;

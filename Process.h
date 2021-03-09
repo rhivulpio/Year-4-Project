@@ -158,6 +158,7 @@ TH1D * h_eventweight;
 //TH1D * h_Zstar_cuts;
 std::vector<TH1D*> h_pT_cuts;
 TH1D * h_new;
+std::vector<TH1D*> h_Zstar_cuts;
 
 
 ExRootTreeReader * InitReader(const TString FilePath);

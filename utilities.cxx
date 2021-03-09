@@ -17,7 +17,7 @@ std::vector<TString> Generate_Histogram_List(int n_cuts, TString property){
     std::vector<TString> h_varycuts;
     TString suffix = "_cut";
     for(int i = 0; i < n_cuts; ++i){
-        h_varycuts.push_back("Mass Reco Cuts/h_" + property + suffix + std::to_string(i));
+        h_varycuts.push_back("Vary Cuts/" + property + " Cuts/h_" + property + suffix + std::to_string(i));
     }
     return h_varycuts;
 }
