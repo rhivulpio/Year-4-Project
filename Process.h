@@ -155,11 +155,10 @@ TH1D * h_Zstar_reco;
 TH1D * h_eventweight;
 
 //mass reconstruction cuts
-//TH1D * h_Zstar_cuts;
-std::vector<TH1D*> h_pT_cuts;
 TH1D * h_new;
+std::vector<TH1D*> h_pT_cuts;
 std::vector<TH1D*> h_Zstar_cuts;
-
+std::vector<TH1D*> h_Z_cuts;
 
 ExRootTreeReader * InitReader(const TString FilePath);
 
@@ -176,3 +175,5 @@ std::vector<bool> Initialise_Flags(int n_cuts);
 std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_property, std::vector<bool> cut_flags);
 void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs);
 void Write_Histogram(std::vector<TH1D*> h_varycuts);
+std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen);
+std::vector<TLorentzVector> Electron_Smear(std::vector<GenParticle*> all_electrons_seen);
