@@ -175,5 +175,7 @@ std::vector<bool> Initialise_Flags(int n_cuts);
 std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_property, std::vector<bool> cut_flags);
 void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs);
 void Write_Histogram(std::vector<TH1D*> h_varycuts);
-std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen);
+void Lorentz_Vector(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> &particles, std::vector<TLorentzVector> &antiparticles);
+std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles);
 std::vector<TLorentzVector> Electron_Smear(std::vector<GenParticle*> all_electrons_seen);
+std::vector<TLorentzVector> Muon_Smear(std::vector<GenParticle*> all_muons_seen);

@@ -889,7 +889,16 @@ void Process(ExRootTreeReader * treeReader) {
                 //---------------------------------------------------------------
                 // Higgs and ZZ* Mass Reconstruction
                 //---------------------------------------------------------------
-                std::vector<double> output = Mass_Reconstruction(all_muons_seen, all_electrons_seen);
+                std::vector<TLorentzVector> particles1;
+                std::vector<TLorentzVector> antiparticles1;
+                
+                Lorentz_Vector(all_muons_seen, all_electrons_seen, particles1, antiparticles1);
+
+                if(Debug) std::cout << " particles 1 size = " << particles1.size() << std::endl;
+                if(Debug) std::cout << " antiparticles 1 size = " << antiparticles1.size() << std::endl;
+
+                std::vector<double> output = Mass_Reconstruction(all_muons_seen, all_electrons_seen, particles1, antiparticles1);
+
                 double m_4l = output[0];
                 double Z_onshell = output[1];
                 double Z_offshell = output[2];
@@ -912,11 +921,18 @@ void Process(ExRootTreeReader * treeReader) {
                 Fill_Histogram(h_Z_cuts, Z_cut_flags, m_4l);
 
                 std::vector<TLorentzVector> electron_smear;
+                std::vector<TLorentzVector> muon_smear;
                 electron_smear = Electron_Smear(all_electrons_seen);
+                muon_smear = Muon_Smear(all_muons_seen);
 
                 if(Debug){
                     std::cout << " electron smear: px = " << electron_smear[0].Px() << " py = " << electron_smear[0].Py() << 
                     " pz = " << electron_smear[0].Pz() << " E = " << electron_smear[0].E() << std::endl;
+                }
+
+                if(Debug){
+                    std::cout << " muon smear: px = " << muon_smear[0].Px() << " py = " << muon_smear[0].Py() << 
+                    " pz = " << muon_smear[0].Pz() << " E = " << muon_smear[0].E() << std::endl;
                 }
             }         
         }
@@ -1075,18 +1091,10 @@ void Write_Histogram(std::vector<TH1D*> h_varycuts){
 //-----------------------------------------------------------------------
 // Higgs and ZZ* Mass Reconstruction
 //-----------------------------------------------------------------------
-std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen){
-    std::vector<double> output;
-    std::vector<TLorentzVector> particles;
-    std::vector<TLorentzVector> antiparticles;
-    TLorentzVector reco_Higgs;
-    reco_Higgs.SetPtEtaPhiM(0,0,0,0);
-    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
+void Lorentz_Vector(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> &particles, std::vector<TLorentzVector> &antiparticles){
     TLorentzVector temp_vector;
-    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
-    std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
-    double Zmass = 91.1876; //actual Z boson mass in GeV
-        
+    std::vector<std::vector<TLorentzVector>> output;
+
     if(all_muons_seen.size() == 4){
         for(int i = 0; i < all_muons_seen.size(); ++i){
             temp_vector.SetPtEtaPhiM(all_muons_seen[i]->PT, all_muons_seen[i]->Eta, all_muons_seen[i]->Phi, all_muons_seen[i]->Mass);
@@ -1111,9 +1119,6 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
         }  
     }
 
-    double Z_onshell;
-    double Z_offshell;
-
     if(all_electrons_seen.size() == 2 && all_muons_seen.size() == 2){
         for(int i = 0; i < all_electrons_seen.size(); ++i){
             temp_vector.SetPtEtaPhiM(all_electrons_seen[i]->PT, all_electrons_seen[i]->Eta, all_electrons_seen[i]->Phi, all_electrons_seen[i]->Mass);
@@ -1132,8 +1137,23 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
             else if(all_muons_seen[i]->PID == -13){
                 antiparticles.push_back(temp_vector);
             }
-        }  
+        }
+    }
+}
 
+std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles){
+    std::vector<double> output;
+    TLorentzVector reco_Higgs;
+    reco_Higgs.SetPtEtaPhiM(0,0,0,0);
+    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
+    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
+    std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
+    double Zmass = 91.1876; //actual Z boson mass in GeV
+
+    double Z_onshell;
+    double Z_offshell;
+
+    if(all_electrons_seen.size() == 2 && all_muons_seen.size() == 2){
         recoZ.push_back(particles[0]+antiparticles[0]);
         recoZ.push_back(particles[1]+antiparticles[1]);
 
@@ -1307,15 +1327,15 @@ std::vector<TLorentzVector> Muon_Smear(std::vector<GenParticle*> all_muons_seen)
         double random_num = generate_random_num -> Gaus(0, 1);
         //random_num_list.push_back(random_num);
 
-        double E_resolution = E * TMath::Sqrt(TMath::Power((a/TMath::Sqrt(E)), 2) + TMath::Power(b, 2));
-        double E_smear = E + E_resolution * random_num;
-        double px_smear = px + E_resolution * random_num;
-        double py_smear = py + E_resolution * random_num;
-        double pz_smear = pz + E_resolution * random_num;
+        double p_resolution = 5;
+        double E_smear = E + p_resolution * random_num;
+        double px_smear = px + p_resolution * random_num;
+        double py_smear = py + p_resolution * random_num;
+        double pz_smear = pz + p_resolution * random_num;
 
-        TLorentzVector electron_vector;
-        electron_vector.SetPxPyPzE(px_smear, py_smear, pz_smear, E_smear);
-        output.push_back(electron_vector);
+        TLorentzVector muon_vector;
+        muon_vector.SetPxPyPzE(px_smear, py_smear, pz_smear, E_smear);
+        output.push_back(muon_vector);
     }
 
     return output;
