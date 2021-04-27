@@ -3,7 +3,7 @@
 #include "Utilities.cxx"
 #include "GlobalConstants.cxx"
 
-bool Debug = true;
+bool Debug = false;
 
 int main(int argc, char* argv[]) {
 
@@ -45,6 +45,8 @@ int main(int argc, char* argv[]) {
     OutputFile->mkdir("Vary Cuts/pT Cuts");
     OutputFile->mkdir("Vary Cuts/Zstar Cuts");
     OutputFile->mkdir("Vary Cuts/Z Cuts");
+    OutputFile->mkdir("Smearing");
+   
 
     h_EventCount = new TH1D("h_EventCount",";""; Number of Events", 9, 0, 9);
     // gStyle -> SetOptStat(0);
@@ -164,13 +166,19 @@ int main(int argc, char* argv[]) {
     log_y_plot = new TH2D("log_y_plot", "log_{10}(y) (Electron) against log_{10}(y) (Hadron); log(y_{h}); log_{10}(y_{e})", 100, -2, 1, 100, -2, 1);
 
     //mass reconstruction
-    h_Higgs_reco = new TH1D("h_Higgs_reco", "; m_{4l} [GeV]; Events ", 150, 80.0, 800.0);
-    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ* Mass [GeV]; Events ", 150, 0.0, 130.0);
-    h_Z_reco = new TH1D("h_Z_reco", "; m_{ll} (Leading Lepton Pair) [GeV]; Events ", 150, 0.0, 130.0);
-    h_Zstar_reco = new TH1D("h_Zstar_reco", "; m_{ll} (Subleading Lepton Pair) [GeV]; Events ", 150, 0.0, 130.0);
+    h_Higgs_reco = new TH1D("h_Higgs_reco", "; m_{4l} [GeV]; Events ", 150, 80.0, 200.0);
+    h_ZZ_mass_reco = new TH1D("h_ZZ_mass_reco", "; Reconstructed ZZ* Mass [GeV]; Events ", 150, 0.0, 200.0);
+    h_Z_reco = new TH1D("h_Z_reco", "; m_{ll} (Leading Lepton Pair) [GeV]; Events ", 150, 0.0, 200.0);
+    h_Zstar_reco = new TH1D("h_Zstar_reco", "; m_{ll} (Subleading Lepton Pair) [GeV]; Events ", 150, 0.0, 200.0);
 
     //event weight plot
     h_eventweight = new TH1D("h_eventweight", "; Event Weight ; Events ", 100, 0.000100, 0.000120);
+
+    //smeared mass reconstruction
+    h_Higgs_reco_smeared = new TH1D("h_Higgs_reco_smeared", "; m_{4l} [GeV]; Events ", 150, 80.0, 200.0);
+    //h_ZZ_mass_reco_smeared = new TH1D("h_ZZ_mass_reco_smeared", "; Reconstructed ZZ* Mass [GeV]; Events ", 150, 0.0, 130.0);
+    h_Z_reco_smeared = new TH1D("h_Z_reco_smeared", "; m_{ll} (Leading Lepton Pair) [GeV]; Events ", 150, 0.0, 200.0);
+    h_Zstar_reco_smeared = new TH1D("h_Zstar_reco_smeared", "; m_{ll} (Subleading Lepton Pair) [GeV]; Events ", 150, 0.0, 200.0);
 
     // Run the selection
     Process(reader);
@@ -303,7 +311,7 @@ int main(int argc, char* argv[]) {
     h_Higgs_reco->SetTitle("Reconstruction of Higgs, Z and Z* Masses");
     h_Higgs_reco->GetXaxis()->SetTitle("Mass (GeV)");
     h_Higgs_reco->GetYaxis()->SetTitle("Number of Events");
-    h_Higgs_reco->GetXaxis()->SetRangeUser(0, 130);
+    h_Higgs_reco->GetXaxis()->SetRangeUser(0, 200);
     h_Higgs_reco->SetLineColor(kRed);
     h_Higgs_reco->SetStats(kFALSE);
     h_Higgs_reco->Draw("hist E2");
@@ -343,6 +351,11 @@ int main(int argc, char* argv[]) {
 
     OutputFile->cd("Vary Cuts/Z Cuts");
     Write_Histogram(h_Z_cuts);
+
+    OutputFile->cd("Smearing");
+    h_Higgs_reco_smeared->Write();
+    h_Z_reco_smeared->Write();
+    h_Zstar_reco_smeared->Write();
 
     OutputFile->Close();
 
@@ -428,7 +441,7 @@ void Process(ExRootTreeReader * treeReader) {
         HepMCEvent * event = (HepMCEvent*) bEvent->At(0);
 
         //const float Event_Weight = signal ? sf_signal : sf_bkgd;
-        const double event_weight = sf_bkgd; //manually change this
+        const double event_weight = sf_signal; //manually change this
 
         h_EventCount->Fill(0.5, event_weight);
         h_WeightCount->Fill(0.5, event_weight);
@@ -894,10 +907,10 @@ void Process(ExRootTreeReader * treeReader) {
                 std::vector<TLorentzVector> particles_vector;
                 std::vector<TLorentzVector> antiparticles_vector;
 
-                Particles_Antiparticles(all_muons_seen, all_electrons_seen, particles1, antiparticles1);
+                Particle_Antiparticle_Sorter(all_muons_seen, all_electrons_seen, particles1, antiparticles1);
                 
-                particles_vector = Lorentz_Vector(particles1);
-                antiparticles_vector = Lorentz_Vector(antiparticles1);
+                particles_vector = Make_Lorentz_Vector(particles1);
+                antiparticles_vector = Make_Lorentz_Vector(antiparticles1);
 
                 if(Debug) std::cout << " particles 1 size = " << particles1.size() << std::endl;
                 if(Debug) std::cout << " antiparticles 1 size = " << antiparticles1.size() << std::endl;
@@ -930,6 +943,28 @@ void Process(ExRootTreeReader * treeReader) {
 
                 electron_smear = Smear(all_electrons_seen);
                 muon_smear = Smear(all_muons_seen);
+
+                std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> particles_antiparticles_smeared;
+                std::vector<TLorentzVector> particles_smeared;
+                std::vector<TLorentzVector> antiparticles_smeared;
+                
+                particles_antiparticles_smeared = Smeared_Particle_Antiparticle_Sorter(electron_smear, muon_smear);
+                particles_smeared = std::get<0>(particles_antiparticles_smeared);
+                antiparticles_smeared = std::get<1>(particles_antiparticles_smeared);
+                
+                if(Debug) std::cout << "particles/antiparticles smeared size: " << particles_smeared.size() << antiparticles_smeared.size() << std::endl;
+
+                std::vector<double> output1 = Mass_Reconstruction(all_muons_seen, all_electrons_seen, particles_smeared, antiparticles_smeared);
+
+                double m_4l_smeared = output1[0];
+                double Z_onshell_smeared = output1[1];
+                double Z_offshell_smeared = output1[2];
+
+                if(Debug) std::cout << "HIGGS MASS SMEARED: " << m_4l_smeared << std::endl; 
+
+                h_Higgs_reco_smeared->Fill(m_4l_smeared, event_weight);
+                h_Z_reco_smeared->Fill(Z_onshell_smeared, event_weight);
+                h_Zstar_reco_smeared->Fill(Z_offshell_smeared, event_weight);
 
                 // if(Debug){
                 //     std::cout << " electron smear: px = " << electron_smear[0].Px() << " py = " << electron_smear[0].Py() << 
@@ -1097,7 +1132,7 @@ void Write_Histogram(std::vector<TH1D*> h_varycuts){
 //-----------------------------------------------------------------------
 // Higgs and ZZ* Mass Reconstruction
 //-----------------------------------------------------------------------
-std::vector<TLorentzVector> Lorentz_Vector(std::vector<GenParticle*> particles){
+std::vector<TLorentzVector> Make_Lorentz_Vector(std::vector<GenParticle*> particles){
     TLorentzVector temp_vector;
     std::vector<TLorentzVector> output;
 
@@ -1109,7 +1144,7 @@ std::vector<TLorentzVector> Lorentz_Vector(std::vector<GenParticle*> particles){
     return output;
 }
 
-void Particles_Antiparticles(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<GenParticle*> &particles, std::vector<GenParticle*> &antiparticles){
+void Particle_Antiparticle_Sorter(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<GenParticle*> &particles, std::vector<GenParticle*> &antiparticles){
     TLorentzVector temp_vector;
 
     if(all_muons_seen.size() == 4){
@@ -1156,6 +1191,42 @@ void Particles_Antiparticles(std::vector<GenParticle*> all_muons_seen, std::vect
             }
         }
     }
+}
+
+std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> Smeared_Particle_Antiparticle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear){
+    std::vector<TLorentzVector> electron_smear0;
+    std::vector<int> electron_smear1;
+    std::vector<TLorentzVector> muon_smear0;
+    std::vector<int> muon_smear1;
+    std::vector<TLorentzVector> particles_smeared;
+    std::vector<TLorentzVector> antiparticles_smeared;
+
+    electron_smear0 = std::get<0>(electron_smear);
+    electron_smear1 = std::get<1>(electron_smear);
+    muon_smear0 = std::get<0>(muon_smear);
+    muon_smear1 = std::get<1>(muon_smear);
+
+    for(int i = 0; i < electron_smear1.size(); ++i){
+        if(electron_smear1[i] == 11){
+            particles_smeared.push_back(electron_smear0[i]);
+        }
+
+        if(electron_smear1[i] == -11){
+            antiparticles_smeared.push_back(electron_smear0[i]);
+        }
+    }
+
+    for(int i = 0; i < muon_smear1.size(); ++i){
+        if(muon_smear1[i] == 13){
+            particles_smeared.push_back(muon_smear0[i]);
+        }
+
+        if(muon_smear1[i] == -13){
+            antiparticles_smeared.push_back(muon_smear0[i]);
+        }
+    }
+
+    return make_tuple(particles_smeared, antiparticles_smeared);
 }
 
 std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles){
@@ -1314,6 +1385,7 @@ std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smear(std::vector<GenP
         if(abs(particles[i]->PID) == 11){
             //random_num_list.push_back(random_num);
             double E_resolution = E * TMath::Sqrt(TMath::Power((a/TMath::Sqrt(E)), 2) + TMath::Power(b, 2));
+            //double E_resolution = 0;
             double E_smear = E + E_resolution * random_num;
             double px_smear = px + E_resolution * random_num;
             double py_smear = py + E_resolution * random_num;
@@ -1327,6 +1399,7 @@ std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smear(std::vector<GenP
 
         if(abs(particles[i]->PID) == 13){
             double p_resolution = 0.02; //the momentum resolution of the inner tracker is 1-2%, I have used 2% here as this is a "worse case scenario" of the detector effects
+            //double p_resolution = 0; 
             double E_smear = E + p_resolution * E * random_num;
             double px_smear = px + p_resolution * px * random_num;
             double py_smear = py + p_resolution * py * random_num;

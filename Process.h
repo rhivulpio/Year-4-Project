@@ -160,6 +160,11 @@ std::vector<TH1D*> h_pT_cuts;
 std::vector<TH1D*> h_Zstar_cuts;
 std::vector<TH1D*> h_Z_cuts;
 
+//smearing
+TH1D * h_Higgs_reco_smeared;
+TH1D * h_Z_reco_smeared;
+TH1D * h_Zstar_reco_smeared;
+
 ExRootTreeReader * InitReader(const TString FilePath);
 
 void Process(ExRootTreeReader * treeReader); //removed bool signal from the arguments
@@ -175,7 +180,8 @@ std::vector<bool> Initialise_Flags(int n_cuts);
 std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_property, std::vector<bool> cut_flags);
 void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs);
 void Write_Histogram(std::vector<TH1D*> h_varycuts);
-std::vector<TLorentzVector> Lorentz_Vector(std::vector<GenParticle*> particles);
-void Particles_Antiparticles(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<GenParticle*> &particles, std::vector<GenParticle*> &antiparticles);
+std::vector<TLorentzVector> Make_Lorentz_Vector(std::vector<GenParticle*> particles);
+void Particle_Antiparticle_Sorter(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<GenParticle*> &particles, std::vector<GenParticle*> &antiparticles);
+std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> Smeared_Particle_Antiparticle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear);
 std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles);
 std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smear(std::vector<GenParticle*> particles);
