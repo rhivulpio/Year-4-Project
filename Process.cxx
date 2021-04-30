@@ -441,7 +441,7 @@ void Process(ExRootTreeReader * treeReader) {
         HepMCEvent * event = (HepMCEvent*) bEvent->At(0);
 
         //const float Event_Weight = signal ? sf_signal : sf_bkgd;
-        const double event_weight = sf_signal; //manually change this
+        const double event_weight = sf_bkgd_two; //manually change this
 
         h_EventCount->Fill(0.5, event_weight);
         h_WeightCount->Fill(0.5, event_weight);
@@ -464,7 +464,7 @@ void Process(ExRootTreeReader * treeReader) {
         bool jet_cut = true; //flag to check if the jet passes the jet cut
         double eta_min_j = -5.0; //eta range of the hadronic calorimeter
         double eta_max_j = 5.5;
-        double pT_min = 15; //in GeV
+        double pT_min = 5; //in GeV
 
         for(int i = 0; i < bJet->GetEntriesFast(); ++i) {
 
@@ -842,21 +842,21 @@ void Process(ExRootTreeReader * treeReader) {
                 }
             }
 
-            if(Debug){
-                std::cout << " Missing Energy Four Vector: pT = " << missing_energy_vector.Pt() << " Et = " << missing_energy_vector.Et() 
-                << " E = " << missing_energy_vector.E() << " eta = " << missing_energy_vector.Eta() << " phi = " << missing_energy_vector.Phi() 
-                << " mass = " << missing_energy_vector.M() << " px = " << missing_energy_vector.Px() << " py = " << missing_energy_vector.Py() 
-                << " pz = " << missing_energy_vector.Pz() << std::endl;
-            }
+            // if(Debug){
+            //     std::cout << " Missing Energy Four Vector: pT = " << missing_energy_vector.Pt() << " Et = " << missing_energy_vector.Et() 
+            //     << " E = " << missing_energy_vector.E() << " eta = " << missing_energy_vector.Eta() << " phi = " << missing_energy_vector.Phi() 
+            //     << " mass = " << missing_energy_vector.M() << " px = " << missing_energy_vector.Px() << " py = " << missing_energy_vector.Py() 
+            //     << " pz = " << missing_energy_vector.Pz() << std::endl;
+            // }
 
             //------------------------------------------------------------------
             // Loop For 4l Events That Are Seen By The Detector
             //------------------------------------------------------------------
             if(event4mu_seen || event4e_seen || event2e2mu_seen){
-                if(Debug){
-                    std::cout << " muons seen = " << all_muons_seen.size() << std::endl;
-                    std::cout << " electrons seen = " << all_electrons_seen.size() << std::endl;
-                }
+                // if(Debug){
+                //     std::cout << " muons seen = " << all_muons_seen.size() << std::endl;
+                //     std::cout << " electrons seen = " << all_electrons_seen.size() << std::endl;
+                // }
 
                 missing_energy_vector = -missing_energy_vector;
                 //missing energy plots
@@ -873,9 +873,9 @@ void Process(ExRootTreeReader * treeReader) {
                 double x_e = electron_output[1];
                 double y_e = electron_output[2];
 
-                if(Debug){
-                    std::cout << "Electron Reconstruction Method: Q_squared = " << Q2_e << " x = " << x_e << " y = " << y_e << std::endl;
-                }
+                // if(Debug){
+                //     std::cout << "Electron Reconstruction Method: Q_squared = " << Q2_e << " x = " << x_e << " y = " << y_e << std::endl;
+                // }
 
                 x_Qsquared_electron -> Fill(x_e, Q2_e);
                 h_logQsquared_electron -> Fill(TMath::Log10(Q2_e), event_weight);
@@ -887,9 +887,9 @@ void Process(ExRootTreeReader * treeReader) {
                 double x_h = hadron_output[1];
                 double y_h = hadron_output[2];
 
-                if(Debug){
-                    std::cout << "Hadron Reconstruction Method: Q_squared = " << Q2_h << " x = " << x_h << " y = " << y_h << std::endl;
-                }
+                // if(Debug){
+                //     std::cout << "Hadron Reconstruction Method: Q_squared = " << Q2_h << " x = " << x_h << " y = " << y_h << std::endl;
+                // }
 
                 x_Qsquared_hadron -> Fill(x_h, Q2_h);
                 log_Qsquared_plot -> Fill(TMath::Log10(Q2_e), TMath::Log10(Q2_h));
@@ -912,8 +912,8 @@ void Process(ExRootTreeReader * treeReader) {
                 particles_vector = Make_Lorentz_Vector(particles1);
                 antiparticles_vector = Make_Lorentz_Vector(antiparticles1);
 
-                if(Debug) std::cout << " particles 1 size = " << particles1.size() << std::endl;
-                if(Debug) std::cout << " antiparticles 1 size = " << antiparticles1.size() << std::endl;
+                // if(Debug) std::cout << " particles 1 size = " << particles1.size() << std::endl;
+                // if(Debug) std::cout << " antiparticles 1 size = " << antiparticles1.size() << std::endl;
 
                 std::vector<double> output = Mass_Reconstruction(all_muons_seen, all_electrons_seen, particles_vector, antiparticles_vector);
 
@@ -953,6 +953,7 @@ void Process(ExRootTreeReader * treeReader) {
                 antiparticles_smeared = std::get<1>(particles_antiparticles_smeared);
                 
                 if(Debug) std::cout << "particles/antiparticles smeared size: " << particles_smeared.size() << antiparticles_smeared.size() << std::endl;
+                if(Debug) std::cout << "muons/electrons seen size: " << all_muons_seen.size() << all_electrons_seen.size() << std::endl;
 
                 std::vector<double> output1 = Mass_Reconstruction(all_muons_seen, all_electrons_seen, particles_smeared, antiparticles_smeared);
 
@@ -960,6 +961,7 @@ void Process(ExRootTreeReader * treeReader) {
                 double Z_onshell_smeared = output1[1];
                 double Z_offshell_smeared = output1[2];
 
+                if(Debug) std::cout << "HIGGS MASS: " << m_4l << std::endl; 
                 if(Debug) std::cout << "HIGGS MASS SMEARED: " << m_4l_smeared << std::endl; 
 
                 h_Higgs_reco_smeared->Fill(m_4l_smeared, event_weight);
@@ -1249,19 +1251,19 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
             recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
         }
 
-        if(Debug){
-            std::cout << " Z masses size " << recoZmass.size() << std::endl;
-            std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << std::endl;
-        }
+        // if(Debug){
+        //     std::cout << " Z masses size " << recoZmass.size() << std::endl;
+        //     std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << std::endl;
+        // }
 
         for(int k = 0; k < recoZmass.size(); ++k){
             double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
             massdiff.push_back(diff);
         } 
 
-        if(Debug){
-            std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << std::endl;
-        }
+        // if(Debug){
+        //     std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << std::endl;
+        // }
 
         //the on-shell Z boson is the one that is closest to the known Z mass
         //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
@@ -1283,10 +1285,10 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
             Z_offshell = recoZmass[0];
         }
 
-        if(Debug){
-        std::cout << " Smallest Mass Diff: " << min << std::endl;
-        std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
-    }
+        // if(Debug){
+        // std::cout << " Smallest Mass Diff: " << min << std::endl;
+        // std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
+        // }
         
     } else if(all_electrons_seen.size() == 4 || all_muons_seen.size() == 4){
         recoZ.push_back(particles[0]+antiparticles[0]);
@@ -1298,19 +1300,19 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
             recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
         }
 
-        if(Debug){
-            std::cout << " Z masses size " << recoZmass.size() << std::endl;
-            std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
-        }
+        // if(Debug){
+        //     std::cout << " Z masses size " << recoZmass.size() << std::endl;
+        //     std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
+        // }
 
         for(int k = 0; k < recoZmass.size(); ++k){
             double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
             massdiff.push_back(diff);
         } 
 
-        if(Debug){
-            std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
-        }
+        // if(Debug){
+        //     std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
+        // }
 
         //the on-shell Z boson is the one that is closest to the known Z mass
         //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
@@ -1342,19 +1344,19 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
             Z_offshell = recoZmass[0];
         }
 
-        if(Debug){
-            std::cout << " Smallest Mass Diff: " << min << std::endl;
-            std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
-        }
+        // if(Debug){
+        //     std::cout << " Smallest Mass Diff: " << min << std::endl;
+        //     std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
+        // }
     }
 
     reco_Higgs = particles[0] + particles[1] + antiparticles[0] + antiparticles[1];
 
-    if(Debug){
-        std::cout << " Higgs Mass: " << reco_Higgs.M() << std::endl;
-        std::cout << " particles.size = " << particles.size() << std::endl;
-        std::cout << " antiparticles.size = " << antiparticles.size() << std::endl;
-    }
+    // if(Debug){
+    //     std::cout << " Higgs Mass: " << reco_Higgs.M() << std::endl;
+    //     std::cout << " particles.size = " << particles.size() << std::endl;
+    //     std::cout << " antiparticles.size = " << antiparticles.size() << std::endl;
+    // }
 
     output = {reco_Higgs.M(), Z_onshell, Z_offshell};
     return output;

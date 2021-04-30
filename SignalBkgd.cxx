@@ -154,18 +154,24 @@ TCanvas * hstack(TString histogram) {
     TH1D * h2 = (TH1D*) bkgd_file -> Get(histogram); 
     h2->SetFillColor(29);
     h2->SetLineColor(29);
+    //h2->SetMarkerStyle(20);
+    //h2->SetMarkerSize(10);
     //h2->SetFillStyle(3001);
     hs->Add(h2);
 
     TH1D * h3 = (TH1D*) bkgd_file_two -> Get(histogram); 
     h3->SetFillColor(46);
     h3->SetLineColor(46);
+    //h3->SetMarkerStyle(20);
+    //h3->SetMarkerSize(10);
     //h3->SetFillStyle(3001);
     hs->Add(h3);
     
     TH1D * h1 = (TH1D*) signal_file -> Get(histogram);
     h1->SetFillColor(38);
     h1->SetLineColor(38);
+    //h1->SetMarkerStyle(20);
+    //h1->SetMarkerSize(10);
     //h1->SetFillStyle(3001);
     // h1->GetXaxis()->SetRangeUser(80, 170);
     hs->Add(h1);
@@ -175,7 +181,9 @@ TCanvas * hstack(TString histogram) {
     TCanvas * cst = new TCanvas("cst", "Stacked Mass Reconstruction", 50, 50, 1000, 750);
     // h1 -> Draw();
     // h2 -> Draw();
-    hs->Draw("HIST");
+    hs->GetStack()->Last()->Draw("HIST E1");
+    hs->Draw("HIST SAME");
+
 
     hs->GetXaxis()->SetTitle("m_{4l} (GeV)");
     hs->GetYaxis()->SetTitle("Number of Events");
@@ -188,6 +196,22 @@ TCanvas * hstack(TString histogram) {
     legend2->AddEntry(h2, "ZZ* -> 4l Background");
     legend2->AddEntry(h3, "Z -> 4l Background");
     legend2->Draw("same");
+
+    int min_signal = h1 -> FindBin(123);
+    int max_signal = h1 -> FindBin(127);
+    double signal_data = h1 -> Integral(min_signal, max_signal);
+    std::cout << " signal counts between 123 and 127: " << signal_data << std::endl;
+
+    int min_bkgd = h2 -> FindBin(123);
+    int max_bkgd = h2 -> FindBin(127);
+    double bkgd_data = h2 -> Integral(min_bkgd, max_bkgd);
+    std::cout << " bkgd counts between 123 and 127: " << bkgd_data << std::endl;
+
+    int min_bkgd_two = h3 -> FindBin(123);
+    int max_bkgd_two = h3 -> FindBin(127);
+    double bkgd_data_two = h3 -> Integral(min_bkgd_two, max_bkgd_two);
+    std::cout << " bkgd two counts between 123 and 127: " << bkgd_data_two << std::endl;
+
 
     hs->Write();
 
