@@ -994,9 +994,11 @@ void Process(ExRootTreeReader * treeReader) {
 }
 // Loop over all events end
 
-//-----------------------------------------------------------------------
-// Calculating Scale Factors for Signal and Background
-//-----------------------------------------------------------------------
+/**
+    Calculates the scale factors for the signal and background files.
+    @param none.
+    @return vector of doubles containing the scale factor for the signal file and both background files.
+*/
 std::vector<double> Scale_Factors(){
     std::vector<double> output;
     double sigma_signal = 1.34e-17; //in picobarns
@@ -1015,9 +1017,12 @@ std::vector<double> Scale_Factors(){
     output = {sf_signal, sf_bkgd, sf_bkgd_two};
     return output;
 }
-//-----------------------------------------------------------------------
-// Kinematic Reconstruction
-//-----------------------------------------------------------------------
+
+/**
+    Performs the electron kinematic reconstruction method.
+    @param nu, TLorentzVector containing information about the scattered neutrino in the event.
+    @return vector of doubles containing the Q squared, Bjorken x and inelasticity, y, values for the event.
+*/
 std::vector<double> Electron_Reconstruction(TLorentzVector nu){
     std::vector<double> output;
 
@@ -1034,6 +1039,11 @@ std::vector<double> Electron_Reconstruction(TLorentzVector nu){
     return output;
 }
 
+/**
+    Performs the hadron kinematic reconstruction method.
+    @param missing_energy_vector, TLorentzVector containing information about the missing energy/momentum in the event.
+    @return vector of doubles containing the Q squared, Bjorken x and inelasticity, y, values for the event.
+*/
 std::vector<double> Hadron_Reconstruction(TLorentzVector missing_energy_vector){
     std::vector<double> output;
 
@@ -1052,9 +1062,12 @@ std::vector<double> Hadron_Reconstruction(TLorentzVector missing_energy_vector){
     return output;
 }
 
-//-----------------------------------------------------------------------
-// Defines Histograms for Significance and S/B Plots
-//-----------------------------------------------------------------------
+/**
+    Defines histograms to be used for the cut optimisation analysis
+    @param hist_name, TString containing the name of the histogram.
+    @param n_cuts, integer which is the number of cuts, and hence the number of histograms to be defined.
+    @return vector of empty TH1D histograms.
+*/
 std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts){
 	TString suffix = "_cut";
     std::vector<TH1D*> h_varycuts;
@@ -1065,9 +1078,11 @@ std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts){
     return h_varycuts;
 }
 
-//-----------------------------------------------------------------------
-// Initialises Flags To Indicate Whether Each Event Passes Each Cut
-//-----------------------------------------------------------------------
+/**
+    Initialises flags to indicate whether each event passes each cut; they are all initially set to true.
+    @param n_cuts, integer which is the number of cuts, and hence the number of flags to be defined.
+    @return vector of booleans that are all set to true.
+*/
 std::vector<bool> Initialise_Flags(int n_cuts){
     std::vector<bool> cut_flags;
     for(int n = 0; n < n_cuts; ++n){
@@ -1076,9 +1091,13 @@ std::vector<bool> Initialise_Flags(int n_cuts){
     return cut_flags;
 }
 
-//-----------------------------------------------------------------------
-// Checks Whether Each Event Passes Each Cut and Changes Flag Accordingly
-//-----------------------------------------------------------------------
+/**
+    Checks whether each event passes each cut and changes the flads accordingly.
+    @param cut_values, vector of doubles containing each cut value for the event to be tested against.
+    @param lepton_property, double which is the particular property that is being tested against the cut, e.g. transverse momentum, mass. This depends on what cut is being applied.
+    @param cut_flags, vector of booleans that are all set to true.
+    @return vector of booleans that are true or false, depending on whether the event passed the particular cut.
+*/
 std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_property, std::vector<bool> cut_flags){
     for(int i = 0; i < cut_values.size(); ++i){
         if(lepton_property < cut_values[i]){
@@ -1088,9 +1107,13 @@ std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_prope
     return cut_flags;
 }
 
-//-----------------------------------------------------------------------
-// Fills A Histogram For Each Cut Value With Events That Pass Cut
-//-----------------------------------------------------------------------
+/**
+    Fills a histogram for each cut value with the reconstructed invariant 4 lepton mass found from events that passed that particular cut.
+    @param h_varycuts, vector of empty TH1D histograms to be filled.
+    @param cut_flags, vector of booleans that are true or false, depending on whether the event passed the particular cut.
+    @param reco_Higgs, double which the reconstructed invariant 4 lepton mass found from each event that passed the particular cut.
+    @return void
+*/
 void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs){
     for(int i = 0; i < cut_flags.size(); ++i){
         if(cut_flags[i] == true){
@@ -1099,18 +1122,22 @@ void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, 
     }
 }
 
-//-----------------------------------------------------------------------
-// Writes n_cuts Number of Histograms
-//-----------------------------------------------------------------------
+/**
+    Writes a histogram for each cut value.
+    @param h_varycuts, vector of TH1D histograms that are filled with the reconstructed invariant 4 lepton mass found from each event that passed the particular cut.
+    @return void
+*/
 void Write_Histogram(std::vector<TH1D*> h_varycuts){
     for(int i = 0; i < h_varycuts.size(); ++i){
         h_varycuts[i]->Write();
     }
 }
 
-//-----------------------------------------------------------------------
-// Higgs and ZZ* Mass Reconstruction
-//-----------------------------------------------------------------------
+/**
+    Turns a vector of GenParticles into a vector of TLorentzVectors.
+    @param particles, vector of GenParticles.
+    @return vector of corresponding TLorentzVectors.
+*/
 std::vector<TLorentzVector> Make_Lorentz_Vector(std::vector<GenParticle*> particles){
     TLorentzVector temp_vector;
     std::vector<TLorentzVector> output;
@@ -1123,6 +1150,14 @@ std::vector<TLorentzVector> Make_Lorentz_Vector(std::vector<GenParticle*> partic
     return output;
 }
 
+/**
+    Sorts vectors of electrons and muons into vectors of particles and antiparticles.
+    @param all_muons_seen, vector of GenParticles that contains all of the muons in the event that are within the detector requirements.
+    @param all_electrons_seen, vector of GenParticles that contains all of the electrons in the event that are within the detector requirements.
+    @param particles, vector of GenParticles that will contain all of the particles in the event that are within the detector requirements.
+    @param antiparticles, vector of GenParticles that will contain all of the antiparticles in the event that are within the detector requirements.
+    @return void
+*/
 void Particle_Antiparticle_Sorter(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<GenParticle*> &particles, std::vector<GenParticle*> &antiparticles){
     TLorentzVector temp_vector;
 
@@ -1172,176 +1207,11 @@ void Particle_Antiparticle_Sorter(std::vector<GenParticle*> all_muons_seen, std:
     }
 }
 
-std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> Smeared_Particle_Antiparticle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear){
-    std::vector<TLorentzVector> electron_smear0;
-    std::vector<int> electron_smear1;
-    std::vector<TLorentzVector> muon_smear0;
-    std::vector<int> muon_smear1;
-    std::vector<TLorentzVector> particles_smeared;
-    std::vector<TLorentzVector> antiparticles_smeared;
-
-    electron_smear0 = std::get<0>(electron_smear);
-    electron_smear1 = std::get<1>(electron_smear);
-    muon_smear0 = std::get<0>(muon_smear);
-    muon_smear1 = std::get<1>(muon_smear);
-
-    for(int i = 0; i < electron_smear1.size(); ++i){
-        if(electron_smear1[i] == 11){
-            particles_smeared.push_back(electron_smear0[i]);
-        }
-
-        if(electron_smear1[i] == -11){
-            antiparticles_smeared.push_back(electron_smear0[i]);
-        }
-    }
-
-    for(int i = 0; i < muon_smear1.size(); ++i){
-        if(muon_smear1[i] == 13){
-            particles_smeared.push_back(muon_smear0[i]);
-        }
-
-        if(muon_smear1[i] == -13){
-            antiparticles_smeared.push_back(muon_smear0[i]);
-        }
-    }
-
-    return make_tuple(particles_smeared, antiparticles_smeared);
-}
-
-std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles){
-    std::vector<double> output;
-    TLorentzVector reco_Higgs;
-    reco_Higgs.SetPtEtaPhiM(0,0,0,0);
-    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
-    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
-    std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
-    double Zmass = 91.1876; //actual Z boson mass in GeV
-
-    double Z_onshell;
-    double Z_offshell;
-
-    if(all_electrons_seen.size() == 2 && all_muons_seen.size() == 2){
-        recoZ.push_back(particles[0]+antiparticles[0]);
-        recoZ.push_back(particles[1]+antiparticles[1]);
-
-        for(int j = 0; j < recoZ.size(); ++j){
-            recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
-        }
-
-        // if(Debug){
-        //     std::cout << " Z masses size " << recoZmass.size() << std::endl;
-        //     std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << std::endl;
-        // }
-
-        for(int k = 0; k < recoZmass.size(); ++k){
-            double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
-            massdiff.push_back(diff);
-        } 
-
-        // if(Debug){
-        //     std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << std::endl;
-        // }
-
-        //the on-shell Z boson is the one that is closest to the known Z mass
-        //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
-        double min = massdiff[0];
-        for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
-            if(massdiff[l] < min){
-                min = massdiff[l];
-            }
-        }
-
-        //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
-        if(min == massdiff[0]){
-            Z_onshell = recoZmass[0];
-            Z_offshell = recoZmass[1];
-        }
-
-        if(min == massdiff[1]){
-            Z_onshell = recoZmass[1];
-            Z_offshell = recoZmass[0];
-        }
-
-        // if(Debug){
-        // std::cout << " Smallest Mass Diff: " << min << std::endl;
-        // std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
-        // }
-        
-    } else if(all_electrons_seen.size() == 4 || all_muons_seen.size() == 4){
-        recoZ.push_back(particles[0]+antiparticles[0]);
-        recoZ.push_back(particles[0]+antiparticles[1]);
-        recoZ.push_back(particles[1]+antiparticles[0]);
-        recoZ.push_back(particles[1]+antiparticles[1]);
-
-        for(int j = 0; j < recoZ.size(); ++j){
-            recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
-        }
-
-        // if(Debug){
-        //     std::cout << " Z masses size " << recoZmass.size() << std::endl;
-        //     std::cout << " Z masses: " << recoZmass[0] << "," << recoZmass[1] << "," << recoZmass[2] << "," << recoZmass[3] << std::endl;
-        // }
-
-        for(int k = 0; k < recoZmass.size(); ++k){
-            double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
-            massdiff.push_back(diff);
-        } 
-
-        // if(Debug){
-        //     std::cout << " Mass Diff: " << massdiff[0] << "," << massdiff[1] << "," << massdiff[2] << "," << massdiff[3] << std::endl;
-        // }
-
-        //the on-shell Z boson is the one that is closest to the known Z mass
-        //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
-        double min = massdiff[0];
-        for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
-            if(massdiff[l] < min){
-                min = massdiff[l];
-            }
-        }
-
-        //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
-        if(min == massdiff[0]){
-            Z_onshell = recoZmass[0];
-            Z_offshell = recoZmass[3];
-        }
-
-        if(min == massdiff[1]){
-            Z_onshell = recoZmass[1];
-            Z_offshell = recoZmass[2];
-        }
-
-        if(min == massdiff[2]){
-            Z_onshell = recoZmass[2];
-            Z_offshell = recoZmass[1];
-        }
-
-        if(min == massdiff[3]){
-            Z_onshell = recoZmass[3];
-            Z_offshell = recoZmass[0];
-        }
-
-        // if(Debug){
-        //     std::cout << " Smallest Mass Diff: " << min << std::endl;
-        //     std::cout << " Z mass (on shell): " << Z_onshell << " Z mass (off shell): " << Z_offshell << std::endl;
-        // }
-    }
-
-    reco_Higgs = particles[0] + particles[1] + antiparticles[0] + antiparticles[1];
-
-    // if(Debug){
-    //     std::cout << " Higgs Mass: " << reco_Higgs.M() << std::endl;
-    //     std::cout << " particles.size = " << particles.size() << std::endl;
-    //     std::cout << " antiparticles.size = " << antiparticles.size() << std::endl;
-    // }
-
-    output = {reco_Higgs.M(), Z_onshell, Z_offshell};
-    return output;
-}
-
-//------------------------------------------------------------------
-// Smearing the Energy and Momentum for Electrons
-//------------------------------------------------------------------
+/**
+    Smears the electron and muon data to simulate the effects of the LHeC detector.
+    @param particles, vector of GenParticles that will contain all of the electrons or muons in the event that are within the detector requirements.
+    @return a tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared electrons or muons.
+*/
 std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smear(std::vector<GenParticle*> particles){
     std::tuple<std::vector<TLorentzVector>, std::vector<int>> output;
     std::vector<TLorentzVector> vectors;
@@ -1392,4 +1262,152 @@ std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smear(std::vector<GenP
     }
     
     return make_tuple(vectors, PIDs);
+}
+
+/**
+    Sorts vectors of electrons and muons into vectors of particles and antiparticles for smeared data.
+    @param electron_smear, tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared electrons.
+    @param muon_smear, tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared muons.
+    @return a tuple that contains two vectors of TLorentzVectors where one containts information on the smeared particles, and one contains information on the smeared antiparticles.
+*/
+std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> Smeared_Particle_Antiparticle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear){
+    std::vector<TLorentzVector> electron_smear0;
+    std::vector<int> electron_smear1;
+    std::vector<TLorentzVector> muon_smear0;
+    std::vector<int> muon_smear1;
+    std::vector<TLorentzVector> particles_smeared;
+    std::vector<TLorentzVector> antiparticles_smeared;
+
+    electron_smear0 = std::get<0>(electron_smear);
+    electron_smear1 = std::get<1>(electron_smear);
+    muon_smear0 = std::get<0>(muon_smear);
+    muon_smear1 = std::get<1>(muon_smear);
+
+    for(int i = 0; i < electron_smear1.size(); ++i){
+        if(electron_smear1[i] == 11){
+            particles_smeared.push_back(electron_smear0[i]);
+        }
+
+        if(electron_smear1[i] == -11){
+            antiparticles_smeared.push_back(electron_smear0[i]);
+        }
+    }
+
+    for(int i = 0; i < muon_smear1.size(); ++i){
+        if(muon_smear1[i] == 13){
+            particles_smeared.push_back(muon_smear0[i]);
+        }
+
+        if(muon_smear1[i] == -13){
+            antiparticles_smeared.push_back(muon_smear0[i]);
+        }
+    }
+
+    return make_tuple(particles_smeared, antiparticles_smeared);
+}
+
+/**
+    Calculates the reconstructed invariant 4 lepton mass, leading lepton pair mass, and subleading lepton pair mass.
+    @param all_muons_seen, vector of GenParticles that contains all of the muons in the event that are within the detector requirements.
+    @param all_electrons_seen, vector of GenParticles that contains all of the electrons in the event that are within the detector requirements.
+    @param particles, vector of TLorentzVectors that contain all of the particles in the event that are within the detector requirements.
+    @param antiparticles, vector of TLorentzVectors that will contain all of the antiparticles in the event that are within the detector requirements.
+    @return a vector of doubles that contains the reconstructed invariant 4 lepton mass, leading lepton pair mass, and subleading lepton pair mass.
+*/
+std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles){
+    std::vector<double> output;
+    TLorentzVector reco_Higgs;
+    reco_Higgs.SetPtEtaPhiM(0,0,0,0);
+    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
+    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
+    std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
+    double Zmass = 91.1876; //actual Z boson mass in GeV
+
+    double Z_onshell;
+    double Z_offshell;
+
+    if(all_electrons_seen.size() == 2 && all_muons_seen.size() == 2){
+        recoZ.push_back(particles[0]+antiparticles[0]);
+        recoZ.push_back(particles[1]+antiparticles[1]);
+
+        for(int j = 0; j < recoZ.size(); ++j){
+            recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
+        }
+
+        for(int k = 0; k < recoZmass.size(); ++k){
+            double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
+            massdiff.push_back(diff);
+        } 
+
+        //the on-shell Z boson is the one that is closest to the known Z mass
+        //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
+        double min = massdiff[0];
+        for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
+            if(massdiff[l] < min){
+                min = massdiff[l];
+            }
+        }
+
+        //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
+        if(min == massdiff[0]){
+            Z_onshell = recoZmass[0];
+            Z_offshell = recoZmass[1];
+        }
+
+        if(min == massdiff[1]){
+            Z_onshell = recoZmass[1];
+            Z_offshell = recoZmass[0];
+        }
+        
+    } else if(all_electrons_seen.size() == 4 || all_muons_seen.size() == 4){
+        recoZ.push_back(particles[0]+antiparticles[0]);
+        recoZ.push_back(particles[0]+antiparticles[1]);
+        recoZ.push_back(particles[1]+antiparticles[0]);
+        recoZ.push_back(particles[1]+antiparticles[1]);
+
+        for(int j = 0; j < recoZ.size(); ++j){
+            recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
+        }
+
+        for(int k = 0; k < recoZmass.size(); ++k){
+            double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
+            massdiff.push_back(diff);
+        } 
+
+        //the on-shell Z boson is the one that is closest to the known Z mass
+        //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
+        double min = massdiff[0];
+        for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
+            if(massdiff[l] < min){
+                min = massdiff[l];
+            }
+        }
+
+        //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
+        if(min == massdiff[0]){
+            Z_onshell = recoZmass[0];
+            Z_offshell = recoZmass[3];
+        }
+
+        if(min == massdiff[1]){
+            Z_onshell = recoZmass[1];
+            Z_offshell = recoZmass[2];
+        }
+
+        if(min == massdiff[2]){
+            Z_onshell = recoZmass[2];
+            Z_offshell = recoZmass[1];
+        }
+
+        if(min == massdiff[3]){
+            Z_onshell = recoZmass[3];
+            Z_offshell = recoZmass[0];
+        }
+
+    }
+
+    reco_Higgs = particles[0] + particles[1] + antiparticles[0] + antiparticles[1];
+
+    output = {reco_Higgs.M(), Z_onshell, Z_offshell};
+    return output;
 }
