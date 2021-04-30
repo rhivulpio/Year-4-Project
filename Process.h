@@ -47,7 +47,6 @@ TClonesArray * bTruthLepton;
 TClonesArray * bTruthWZ;
 TClonesArray * bJet;
 
-
 // Output
 TFile * OutputFile;
 
@@ -59,34 +58,42 @@ TH1D * h_Lepton_Pt;
 TH1D * h_Jet_Pt;
 TH1D * h_ZZ_Mass;
 
-//my graphs
+//----------------------------------------------------------
+// Declaring all Plots
+//----------------------------------------------------------
 
-//pseudorapidity and transverse momentum
+//----------------------------------------------------------
+// Transverse Momentum, Pseudorapidity and Transverse Energy
+//----------------------------------------------------------
 TH1D * h_mu_pT;
 TH1D * h_mu_eta;
 TH1D * h_Jet_eta; 
 TH1D * h_Z_eta; 
 TH1D * h_nu_eta; 
-
-//transverse energy
 TH1D * h_mu_Et;
 TH1D * h_Jet_Et;
 TH1D * h_Z_Et; 
 TH1D * h_nu_Et;
 
-//Higgs graphs
+//----------------------------------------------------------
+// Higgs Plots
+//----------------------------------------------------------
 TH1D * h_Higgs_pT;
 TH1D * h_Higgs_eta;
 TH1D * h_Higgs_Et;
 
-//4mu event graphs
+//----------------------------------------------------------
+// Plots for 4mu Events
+//----------------------------------------------------------
 TH1D * h4mu_mu_pT;
 TH1D * h4mu_mu_Et;
 TH1D * h4mu_nu_pT;
 TH1D * h4mu_mu_eta;
 TH1D * h4mu_nu_eta; 
 
-//4mu event seen by detector graphs
+//----------------------------------------------------------
+// Plots for 4mu Events Seen by Detector
+//----------------------------------------------------------
 TH1D * h4mu_mu_pT_seen;
 TH1D * h4mu_mu_Et_seen;
 TH1D * h4mu_nu_pT_seen;
@@ -99,40 +106,46 @@ TH1D * h4mu_Higgs_eta_seen;
 TH1D * h4mu_jet_eta_seen;
 TH1D * h4mu_jet_pT_seen;
 
-//acceptance plots
+//----------------------------------------------------------
+// Acceptance Plots
+//----------------------------------------------------------
 TEfficiency * e_eta;
 TEfficiency * e_Et;
 TEfficiency * e_pT;
 TEfficiency * e4mu_eta;
 TEfficiency * e4mu_Et;
 TEfficiency * e4mu_pT;
-
 TEfficiency * e_H_eta;
 TEfficiency * e_H_Et;
 TEfficiency * e_H_pT;
-
 TEfficiency * e4mu_H_eta;
 TEfficiency * e4mu_H_Et;
 TEfficiency * e4mu_H_pT;
-
-//plotting variables against each other
 TEfficiency * e_mu_pT_eta;
 
-//truejet histograms
+//----------------------------------------------------------
+// True Jet Plots
+//----------------------------------------------------------
 TH1D * h_trueJet_Et;
 TH1D * h_trueJet_eta;
 TH1D * h_trueJet_Pt;
 
-//2D missing energy plot
+//----------------------------------------------------------
+// Missing Energy/Azimuthal Angle Plots
+//----------------------------------------------------------
 TH2D * h_ME_nu_pT;
 TH2D * h_ME_nu_eta;
 TH2D * h_ME_nu_phi;
 
-//scatter plots
+//----------------------------------------------------------
+// Scatter Plots
+//----------------------------------------------------------
 TH2D * h_mu_pT_eta;
 TH2D * h_4mu_pT_eta;
 
-//kinematic reconstruction
+//----------------------------------------------------------
+// Kinematic Reconstruction Plots
+//----------------------------------------------------------
 TH2D * x_Qsquared_electron;
 TH2D * x_Qsquared_hadron;
 TH2D * log_Qsquared_plot;
@@ -145,34 +158,43 @@ TH1D * h_logx_hadron;
 TH1D * h_logy_hadron;
 TH1D * h_logQsquared_hadron;
 
-//Z mass reconstruction
+//----------------------------------------------------------
+// Mass Reconstruction Plots
+//----------------------------------------------------------
 TH1D * h_Higgs_reco;
 TH1D * h_ZZ_mass_reco;
 TH1D * h_Z_reco;
 TH1D * h_Zstar_reco;
 
-//event weight
+//----------------------------------------------------------
+// Event Weight Plot
+//----------------------------------------------------------
 TH1D * h_eventweight;
 
-//mass reconstruction cuts
+//----------------------------------------------------------
+// Cuts Analysis Plots
+//----------------------------------------------------------
 TH1D * h_new;
 std::vector<TH1D*> h_pT_cuts;
 std::vector<TH1D*> h_Zstar_cuts;
 std::vector<TH1D*> h_Z_cuts;
 
-//smearing
+//----------------------------------------------------------
+// Smeared Mass Reconstruction Plots
+//----------------------------------------------------------
 TH1D * h_Higgs_reco_smeared;
 TH1D * h_Z_reco_smeared;
 TH1D * h_Zstar_reco_smeared;
 
+//----------------------------------------------------------
+// Declaring Functions
+//----------------------------------------------------------
+
 ExRootTreeReader * InitReader(const TString FilePath);
-
 void Process(ExRootTreeReader * treeReader); //removed bool signal from the arguments
-
 void ClearBranches();
-
 int main(int argc, char* argv[]);
-
+std::vector<double> Scale_Factors();
 std::vector<double> Electron_Reconstruction(TLorentzVector nu);
 std::vector<double> Hadron_Reconstruction(TLorentzVector Missing_Energy_Vector);
 std::vector<TH1D*> Define_Histograms(TString hist_name, int n_cuts);

@@ -1,14 +1,38 @@
 #include <vector>
 
+//------------------------------------
+// Parameters for Selection Criteria
+//------------------------------------
+double pT_min = 5; //in GeV, used for the jets and leptons
+double eta_min_j = -5.0; //eta range of the hadronic calorimeter, used for the jets
+double eta_max_j = 5.5;
+double eta_min_mu = -4.6; //eta range of the inner tracker, used for the muons
+double eta_max_mu = 5.3;
+double eta_min_e = -5.0; //eta range of the electromagnetic calorimeter, used for the electrons
+double eta_max_e = 5.0;
+
+//------------------------------------
+// Parameters for Cuts Analysis
+//------------------------------------
+int n_pT_cuts = 40;
+double min_pT_cut = 10.0; //GeV
+double step_pT_cut = 2.0; //GeV
+
+int n_Zstar_cuts = 40;
+double min_Zstar_cut = 10.0; //GeV
+double step_Zstar_cut = 1.0; //GeV
+
+int n_Z_cuts = 40;
+double min_Z_cut = 40.0; //GeV
+double step_Z_cut = 2.0; //GeV
+
+//------------------------------------
+// Declaring Functions
+//------------------------------------
 std::vector<double> Define_Cut_Values(int n_cuts, double min_cut, double step_cut);
 std::vector<TString> Generate_Histogram_List(int n_pT_cuts, TString property);
 void Make_Histograms(TString property, TString units, int n_cuts, double min_cut, double step_cut);
 void Significance_Plots(TString property, TString units, int n_cuts, double min_cut, double step_cut);
-
-//stacked mass reconstruction
-TH1D * h1;
-TH1D * h2;
-
 TCanvas * hstack(TString histogram);
 
 std::vector<double> Define_Cut_Values(int n_cuts, double min_cut, double step_cut){

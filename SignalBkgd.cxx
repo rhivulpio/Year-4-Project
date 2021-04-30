@@ -9,7 +9,6 @@
 #include "TEfficiency.h"
 #include <TString.h>
 #include "Utilities.cxx"
-#include "GlobalConstants.cxx"
 
 TFile * signal_file;
 TFile * bkgd_file;
@@ -21,13 +20,13 @@ void SignalBkgd(){
     TString bkgd_file_name = "bkgd.root";
     TString bkgd_file_two_name = "bkgd_two.root";
 
-    signal_file = TFile::Open(signal_file_name);
+    signal_file = TFile::Open(signal_file_name); //importing signal and background files
     bkgd_file = TFile::Open(bkgd_file_name);
     bkgd_file_two = TFile::Open(bkgd_file_two_name);
     OutputFile = new TFile("SignalBkgd.root", "recreate");
     OutputFile -> cd();
     TCanvas * c2 = new TCanvas("c2"," Efficiency ", 50, 50, 1000, 750);
-    gStyle -> SetOptStat(0); //what does this do
+    gStyle -> SetOptStat(0);
 
     TH1D * h_signal;
     TH1D * h_bkgd;
@@ -35,13 +34,12 @@ void SignalBkgd(){
     TLegend * legend;
     Double_t histmax;
     
-    std::vector<TString> histograms;
-
+    std::vector<TString> histograms; //creating a vector to store histogram names for mass reconstruction
     histograms.push_back("Mass Reconstruction/h_Higgs_reco");
     histograms.push_back("Mass Reconstruction/h_Z_reco");
     histograms.push_back("Mass Reconstruction/h_Zstar_reco");
 
-    std::vector<TString> smeared_histograms;
+    std::vector<TString> smeared_histograms; //creating a vector to store histogram names for smeared mass reconstruction
     smeared_histograms.push_back("Smearing/h_Higgs_reco_smeared");
     smeared_histograms.push_back("Smearing/h_Z_reco_smeared");
     smeared_histograms.push_back("Smearing/h_Zstar_reco_smeared");
@@ -49,7 +47,7 @@ void SignalBkgd(){
     TH1D * h_signal_data;
     TH1D * h_bkgd_data;
 
-    h_signal_data = (TH1D*) signal_file -> Get(histograms[1]);
+    h_signal_data = (TH1D*) signal_file -> Get(histograms[1]); //retrieving histograms from vector that stores names
     h_bkgd_data = (TH1D*) bkgd_file -> Get(histograms[1]);
 
     int min = h_signal_data -> FindBin(20);
@@ -57,8 +55,9 @@ void SignalBkgd(){
     double Z_signal = h_signal_data -> GetEntries();
     double Z_bkgd = h_bkgd_data -> GetEntries();
 
-    std::cout << "Z signal data = " << Z_signal << " Z background data = " << Z_bkgd << std::endl;
-
+    //------------------------------------------------------------
+    //Plotting Mass Reconstruction for Higgs, Z and Z* on One Plot
+    //------------------------------------------------------------
     for(Int_t i = 0; i < histograms.size() ; ++i){
         h_signal = (TH1D*) signal_file -> Get(histograms[i]);
         h_bkgd = (TH1D*) bkgd_file -> Get(histograms[i]);    
@@ -75,7 +74,7 @@ void SignalBkgd(){
         h_bkgd -> Draw("same hist E2");
 
         legend = new TLegend(0.1, 0.8, 0.25, 0.9);
-        legend->SetHeader("Histogram Markers","C"); // option "C" allows to center the header
+        legend->SetHeader("Histogram Markers", "C");
         legend->AddEntry(h_signal, "Signal");
         legend->AddEntry(h_bkgd, "Background");
         legend-> Draw("same"); 
@@ -89,12 +88,17 @@ void SignalBkgd(){
     Significance_Plots("Zstar", "GeV", n_Zstar_cuts, min_Zstar_cut, step_Zstar_cut);
     Significance_Plots("Z", "GeV", n_Z_cuts, min_Z_cut, step_Z_cut);
 
-    //hstack(histograms[0]);
+    //----------------------------------------------------
+    //Plotting Stacked Mass Reconstruction
+    //----------------------------------------------------
     hstack(smeared_histograms[0]);
 
     OutputFile -> Close();
 }
 
+//--------------------------------------------------------------------
+//Calculating and Plotting Significance and Signal to Background Ratio
+//--------------------------------------------------------------------
 void Significance_Plots(TString property, TString units, int n_cuts, double min_cut, double step_cut){
     std::vector<TString> h_varycuts = Generate_Histogram_List(n_cuts, property);
 
@@ -148,50 +152,39 @@ void Significance_Plots(TString property, TString units, int n_cuts, double min_
 
 }  
 
+//--------------------------------------------------------------------
+//Plotting Stacked Mass Reconstruction
+//--------------------------------------------------------------------
 TCanvas * hstack(TString histogram) {
     THStack * hs = new THStack("hs", "Stacked Mass Reconstruction");
     
     TH1D * h2 = (TH1D*) bkgd_file -> Get(histogram); 
     h2->SetFillColor(29);
-    h2->SetLineColor(29);
-    //h2->SetMarkerStyle(20);
-    //h2->SetMarkerSize(10);
-    //h2->SetFillStyle(3001);
+    h2->SetLineColor(1);
     hs->Add(h2);
 
     TH1D * h3 = (TH1D*) bkgd_file_two -> Get(histogram); 
     h3->SetFillColor(46);
-    h3->SetLineColor(46);
-    //h3->SetMarkerStyle(20);
-    //h3->SetMarkerSize(10);
-    //h3->SetFillStyle(3001);
+    h3->SetLineColor(1);
     hs->Add(h3);
     
     TH1D * h1 = (TH1D*) signal_file -> Get(histogram);
     h1->SetFillColor(38);
-    h1->SetLineColor(38);
-    //h1->SetMarkerStyle(20);
-    //h1->SetMarkerSize(10);
-    //h1->SetFillStyle(3001);
-    // h1->GetXaxis()->SetRangeUser(80, 170);
+    h1->SetLineColor(1);
     hs->Add(h1);
 
-    
-
     TCanvas * cst = new TCanvas("cst", "Stacked Mass Reconstruction", 50, 50, 1000, 750);
-    // h1 -> Draw();
-    // h2 -> Draw();
-    hs->GetStack()->Last()->Draw("HIST E1");
-    hs->Draw("HIST SAME");
-
+    TH1 * last_stack = (TH1*)hs->GetStack()->Last();
+    last_stack->SetFillColor(38);
+    last_stack->SetLineColor(1);
+    hs->Draw("HIST");
+    last_stack->Draw("SAME E1");
 
     hs->GetXaxis()->SetTitle("m_{4l} (GeV)");
     hs->GetYaxis()->SetTitle("Number of Events");
-    //hs->GetXaxis()->SetRangeUser(0, 200);
 
     TLegend * legend2;
     legend2 = new TLegend(0.1, 0.7, 0.3, 0.9);
-    // legend->SetHeader("Particle", "C");
     legend2->AddEntry(h1, "Signal");
     legend2->AddEntry(h2, "ZZ* -> 4l Background");
     legend2->AddEntry(h3, "Z -> 4l Background");
