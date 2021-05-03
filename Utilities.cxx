@@ -9,7 +9,7 @@ double eta_max_j = 5.5;
 double eta_min_mu = -4.6; //eta range of the inner tracker, used for the muons
 double eta_max_mu = 5.3;
 double eta_min_e = -5.0; //eta range of the electromagnetic calorimeter, used for the electrons
-double eta_max_e = 5.0;
+double eta_max_e = 5.5;
 
 //------------------------------------
 // Parameters for Cuts Analysis

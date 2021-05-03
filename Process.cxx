@@ -2,7 +2,7 @@
 #include "Process.h"
 #include "Utilities.cxx"
 
-bool Debug = true;
+bool Debug = false;
 
 int main(int argc, char* argv[]) {
 
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     OutputFile->mkdir("Vary Cuts/Z Cuts");
     OutputFile->mkdir("Smearing");
    
-    h_EventCount = new TH1D("h_EventCount",";""; Number of Events", 9, 0, 9);
+    h_EventCount = new TH1D("h_EventCount",";""; Number of Events", 13, 0, 13);
     h_EventCount->SetStats(0);
     TAxis * xAxis = h_EventCount->GetXaxis();
     xAxis->SetBinLabel(1, "Total Events");
@@ -206,8 +206,12 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of 4mu Events Seen by Detector:   " << h_EventCount->GetBinContent(3) << std::endl; 
     std::cout << "Number of 4e Events:                     " << h_EventCount->GetBinContent(4) << std::endl;
     std::cout << "Number of 4e Events Seen by Detector:    " << h_EventCount->GetBinContent(5) << std::endl;
-    std::cout << "Number of 2e2mu Events:                  " << h_EventCount->GetBinContent(6) << std::endl;
-    std::cout << "Number of 2e2mu Events Seen by Detector: " << h_EventCount->GetBinContent(7) << std::endl;
+    std::cout << "Number of 2e2mu Events (Total):          " << h_EventCount->GetBinContent(6) << std::endl;
+    std::cout << "Number of 2e2mu Events (Split):          " << h_EventCount->GetBinContent(12) << std::endl;
+    std::cout << "Number of 2mu2e Events (Split):          " << h_EventCount->GetBinContent(13) << std::endl;
+    std::cout << "Number of 2e2mu Events Seen by Detector (Total) : " << h_EventCount->GetBinContent(7) << std::endl;
+    std::cout << "Number of 2e2mu Events Seen by Detector (Split) : " << h_EventCount->GetBinContent(10) << std::endl;
+    std::cout << "Number of 2mu2e Events Seen by Detector (Split): " << h_EventCount->GetBinContent(11) << std::endl;
     std::cout << "Number of 4l Events:                     " << h_EventCount->GetBinContent(8) << std::endl;
     std::cout << "Number of 4l Events Seen by Detector:    " << h_EventCount->GetBinContent(9) << std::endl;
 
@@ -531,9 +535,14 @@ void Process(ExRootTreeReader * treeReader) {
         bool event4e_seen; //flag to check if 4e event is seen by the detector (within detector requirements)
         bool event2e2mu_seen; //flag to check if 2e2mu event is seen by the detector (within detector requirements)
         bool event2pos2neg = false; //flag to check if there are 2 positively charged leptons and 2 negatively charged leptons in the event
-
+        bool ev2e2mu;
+        bool ev2mu2e;
+        bool ev2e2mu_seen;
+        bool ev2mu2e_seen;
         bool muon_cut = true; //flag to check if muons pass cuts
         bool electron_cut = true; //flag to check if electrons pass cuts
+
+        //note: the event2e2mu and event2e2mu_seen refer to events that are both 2e2mu and 2mu2e, whereas the ev2e2mu and ev2mu2e refer to those specific subchannels
 
         //------------------------------------------------------------------
         // Continuation of Cuts Analysis
@@ -757,6 +766,8 @@ void Process(ExRootTreeReader * treeReader) {
         //------------------------------------------------------------------
         if(event4mu || event4e || event2e2mu){
             TLorentzVector vec_neutrino;
+            std::vector<GenParticle*> muons;
+            std::vector<GenParticle*> electrons;
             std::vector<GenParticle*> all_muons_seen; //makes an array which will contain all muons that are seen by the detector
             std::vector<GenParticle*> all_electrons_seen; //makes an array which will contain all electrons that are seen by the detector
 
@@ -776,6 +787,15 @@ void Process(ExRootTreeReader * treeReader) {
                 }
 
                 vec_neutrino = vec_lepton;
+
+                if(abs(lep->PID) == 13){
+                    muons.push_back(lep);
+                }
+
+                if(abs(lep->PID) == 11){
+                    electrons.push_back(lep);
+                }
+                
 
                 if(event4mu){
                     //plotting histograms for muons in 4mu events
@@ -831,6 +851,31 @@ void Process(ExRootTreeReader * treeReader) {
                 }
             }
 
+            std::vector<GenParticle*> all_particles;
+            std::vector<GenParticle*> all_antiparticles;
+            std::tuple<std::vector<TLorentzVector>, std::vector<int>> all_particles_vec;
+            std::tuple<std::vector<TLorentzVector>, std::vector<int>> all_antiparticles_vec;
+
+            Particle_Antiparticle_Sorter(all_muons, all_electrons, all_particles, all_antiparticles);
+            all_particles_vec = Make_Lorentz_Vector(all_particles);
+            all_antiparticles_vec = Make_Lorentz_Vector(all_antiparticles);
+
+            // std::cout << "all particles size " << std::get<0>(all_particles_vec).size() << std::endl;
+            // std::cout << "all antiparticles size " << std::get<0>(all_antiparticles_vec).size() << std::endl;
+
+            std::tuple<double, double, double, bool, bool> output2 = Mass_Reconstruction(all_particles_vec, all_antiparticles_vec);
+
+            ev2e2mu = std::get<3>(output2);
+            ev2mu2e = std::get<4>(output2);
+
+            if(ev2e2mu == true && ev2mu2e == false){
+                if(Debug) std::cout << "here 1" << std::endl;
+                h_EventCount->Fill(11.5, event_weight);
+            } else if(ev2e2mu == false && ev2mu2e == true){
+                if(Debug) std::cout << "here 2" << std::endl;
+                h_EventCount->Fill(12.5, event_weight);
+            }
+
             //------------------------------------------------------------------
             // Loop For 4l Events That Are Seen By The Detector
             //------------------------------------------------------------------
@@ -872,21 +917,21 @@ void Process(ExRootTreeReader * treeReader) {
                 //---------------------------------------------------------------
                 // 4 Lepton, Z and Z* Mass Reconstruction
                 //---------------------------------------------------------------
-                std::vector<GenParticle*> particles1;
-                std::vector<GenParticle*> antiparticles1;
-                std::vector<TLorentzVector> particles_vector;
-                std::vector<TLorentzVector> antiparticles_vector;
+                std::vector<GenParticle*> particles_seen;
+                std::vector<GenParticle*> antiparticles_seen;
+                std::tuple<std::vector<TLorentzVector>, std::vector<int>> particles_seen_vec;
+                std::tuple<std::vector<TLorentzVector>, std::vector<int>> antiparticles_seen_vec;
 
-                Particle_Antiparticle_Sorter(all_muons_seen, all_electrons_seen, particles1, antiparticles1);
+                Particle_Antiparticle_Sorter(all_muons_seen, all_electrons_seen, particles_seen, antiparticles_seen);
                 
-                particles_vector = Make_Lorentz_Vector(particles1);
-                antiparticles_vector = Make_Lorentz_Vector(antiparticles1);
+                particles_seen_vec = Make_Lorentz_Vector(particles_seen);
+                antiparticles_seen_vec = Make_Lorentz_Vector(antiparticles_seen);
 
-                std::vector<double> output = Mass_Reconstruction(all_muons_seen, all_electrons_seen, particles_vector, antiparticles_vector);
+                std::tuple<double, double, double, bool, bool> output = Mass_Reconstruction(particles_seen_vec, antiparticles_seen_vec);
 
-                double m_4l = output[0];
-                double Z_onshell = output[1];
-                double Z_offshell = output[2];
+                double m_4l = std::get<0>(output);
+                double Z_onshell = std::get<1>(output);
+                double Z_offshell = std::get<2>(output);
 
                 Zstar_cut_flags = Check_Cuts(Zstar_cut_values, Z_offshell, Zstar_cut_flags);
                 Z_cut_flags = Check_Cuts(Z_cut_values, Z_onshell, Z_cut_flags);
@@ -896,6 +941,15 @@ void Process(ExRootTreeReader * treeReader) {
                 h_ZZ_mass_reco->Fill(Z_offshell, event_weight);
                 h_Z_reco->Fill(Z_onshell, event_weight);
                 h_Zstar_reco->Fill(Z_offshell, event_weight);
+
+                ev2e2mu_seen = std::get<3>(output);
+                ev2mu2e_seen = std::get<4>(output);
+
+                if(ev2e2mu_seen == true && ev2mu2e_seen == false){
+                    h_EventCount->Fill(9.5, event_weight);
+                } else if(ev2e2mu_seen == false && ev2mu2e_seen == true){
+                    h_EventCount->Fill(10.5, event_weight);
+                }
 
                 //---------------------------------------------------------------
                 // Histograms for Significance and S/B Plots
@@ -907,26 +961,22 @@ void Process(ExRootTreeReader * treeReader) {
                 //---------------------------------------------------------------
                 // 4 Lepton Mass Reconstruction for Smeared Data
                 //---------------------------------------------------------------
-
                 std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear;
                 std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear;
+                std::tuple<std::vector<TLorentzVector>, std::vector<int>> particles_smeared;
+                std::tuple<std::vector<TLorentzVector>, std::vector<int>> antiparticles_smeared;
 
                 electron_smear = Smear(all_electrons_seen);
                 muon_smear = Smear(all_muons_seen);
-
-                std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> particles_antiparticles_smeared;
-                std::vector<TLorentzVector> particles_smeared;
-                std::vector<TLorentzVector> antiparticles_smeared;
                 
-                particles_antiparticles_smeared = Smeared_Particle_Antiparticle_Sorter(electron_smear, muon_smear);
-                particles_smeared = std::get<0>(particles_antiparticles_smeared);
-                antiparticles_smeared = std::get<1>(particles_antiparticles_smeared);
+                particles_smeared = Smeared_Particle_Sorter(electron_smear, muon_smear);
+                antiparticles_smeared = Smeared_Antiparticle_Sorter(electron_smear, muon_smear);
 
-                std::vector<double> output1 = Mass_Reconstruction(all_muons_seen, all_electrons_seen, particles_smeared, antiparticles_smeared);
+                std::tuple<double, double, double, bool, bool> output1 = Mass_Reconstruction(particles_smeared, antiparticles_smeared);
 
-                double m_4l_smeared = output1[0];
-                double Z_onshell_smeared = output1[1];
-                double Z_offshell_smeared = output1[2];
+                double m_4l_smeared = std::get<0>(output1);
+                double Z_onshell_smeared = std::get<1>(output1);
+                double Z_offshell_smeared = std::get<2>(output1);
 
                 if(Debug) std::cout << "HIGGS MASS: " << m_4l << std::endl; 
                 if(Debug) std::cout << "HIGGS MASS SMEARED: " << m_4l_smeared << std::endl; 
@@ -996,7 +1046,6 @@ void Process(ExRootTreeReader * treeReader) {
 
 /**
     Calculates the scale factors for the signal and background files.
-    @param none.
     @return vector of doubles containing the scale factor for the signal file and both background files.
 */
 std::vector<double> Scale_Factors(){
@@ -1112,7 +1161,6 @@ std::vector<bool> Check_Cuts(std::vector<double> cut_values, double lepton_prope
     @param h_varycuts, vector of empty TH1D histograms to be filled.
     @param cut_flags, vector of booleans that are true or false, depending on whether the event passed the particular cut.
     @param reco_Higgs, double which the reconstructed invariant 4 lepton mass found from each event that passed the particular cut.
-    @return void
 */
 void Fill_Histogram(std::vector<TH1D*> h_varycuts, std::vector<bool> cut_flags, double reco_Higgs){
     for(int i = 0; i < cut_flags.size(); ++i){
@@ -1134,20 +1182,22 @@ void Write_Histogram(std::vector<TH1D*> h_varycuts){
 }
 
 /**
-    Turns a vector of GenParticles into a vector of TLorentzVectors.
+    Turns a vector of GenParticles into a vector of TLorentzVectors with corresponding particle ID numbers.
     @param particles, vector of GenParticles.
-    @return vector of corresponding TLorentzVectors.
+    @return tuple that contains a vector of corresponding TLorentzVectors and a vector of corresponding particle ID numbers.
 */
-std::vector<TLorentzVector> Make_Lorentz_Vector(std::vector<GenParticle*> particles){
+std::tuple<std::vector<TLorentzVector>, std::vector<int>> Make_Lorentz_Vector(std::vector<GenParticle*> particles){
     TLorentzVector temp_vector;
     std::vector<TLorentzVector> output;
+    std::vector<int> PIDs;
 
     for(int i = 0; i < particles.size(); ++i){
         temp_vector.SetPtEtaPhiM(particles[i]->PT, particles[i]->Eta, particles[i]->Phi, particles[i]->Mass);
         output.push_back(temp_vector);
+        PIDs.push_back(particles[i]->PID);
     }
 
-    return output;
+    return make_tuple(output, PIDs);
 }
 
 /**
@@ -1156,7 +1206,6 @@ std::vector<TLorentzVector> Make_Lorentz_Vector(std::vector<GenParticle*> partic
     @param all_electrons_seen, vector of GenParticles that contains all of the electrons in the event that are within the detector requirements.
     @param particles, vector of GenParticles that will contain all of the particles in the event that are within the detector requirements.
     @param antiparticles, vector of GenParticles that will contain all of the antiparticles in the event that are within the detector requirements.
-    @return void
 */
 void Particle_Antiparticle_Sorter(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<GenParticle*> &particles, std::vector<GenParticle*> &antiparticles){
     TLorentzVector temp_vector;
@@ -1265,112 +1314,176 @@ std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smear(std::vector<GenP
 }
 
 /**
-    Sorts vectors of electrons and muons into vectors of particles and antiparticles for smeared data.
+    Sorts vectors of electrons and muons into vectors of particles (not antiparticles) for smeared data.
     @param electron_smear, tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared electrons.
     @param muon_smear, tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared muons.
-    @return a tuple that contains two vectors of TLorentzVectors where one containts information on the smeared particles, and one contains information on the smeared antiparticles.
+    @return a tuple that contains a vector of TLorentzVectors and a vector of particle ID numbers for the smeared particles in the event.
 */
-std::tuple<std::vector<TLorentzVector>, std::vector<TLorentzVector>> Smeared_Particle_Antiparticle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear){
+std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smeared_Particle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear){
     std::vector<TLorentzVector> electron_smear0;
-    std::vector<int> electron_smear1;
+    std::vector<int> electron_PID;
     std::vector<TLorentzVector> muon_smear0;
-    std::vector<int> muon_smear1;
+    std::vector<int> muon_PID;
     std::vector<TLorentzVector> particles_smeared;
-    std::vector<TLorentzVector> antiparticles_smeared;
+    std::vector<int> PIDs;
 
     electron_smear0 = std::get<0>(electron_smear);
-    electron_smear1 = std::get<1>(electron_smear);
+    electron_PID = std::get<1>(electron_smear);
     muon_smear0 = std::get<0>(muon_smear);
-    muon_smear1 = std::get<1>(muon_smear);
+    muon_PID = std::get<1>(muon_smear);
 
-    for(int i = 0; i < electron_smear1.size(); ++i){
-        if(electron_smear1[i] == 11){
+    for(int i = 0; i < electron_PID.size(); ++i){
+        if(electron_PID[i] == 11){
             particles_smeared.push_back(electron_smear0[i]);
-        }
-
-        if(electron_smear1[i] == -11){
-            antiparticles_smeared.push_back(electron_smear0[i]);
+            PIDs.push_back(electron_PID[i]);
         }
     }
 
-    for(int i = 0; i < muon_smear1.size(); ++i){
-        if(muon_smear1[i] == 13){
+    for(int i = 0; i < muon_PID.size(); ++i){
+        if(muon_PID[i] == 13){
             particles_smeared.push_back(muon_smear0[i]);
-        }
-
-        if(muon_smear1[i] == -13){
-            antiparticles_smeared.push_back(muon_smear0[i]);
+            PIDs.push_back(muon_PID[i]);
         }
     }
 
-    return make_tuple(particles_smeared, antiparticles_smeared);
+    return make_tuple(particles_smeared, PIDs);
 }
 
 /**
-    Calculates the reconstructed invariant 4 lepton mass, leading lepton pair mass, and subleading lepton pair mass.
-    @param all_muons_seen, vector of GenParticles that contains all of the muons in the event that are within the detector requirements.
-    @param all_electrons_seen, vector of GenParticles that contains all of the electrons in the event that are within the detector requirements.
-    @param particles, vector of TLorentzVectors that contain all of the particles in the event that are within the detector requirements.
-    @param antiparticles, vector of TLorentzVectors that will contain all of the antiparticles in the event that are within the detector requirements.
-    @return a vector of doubles that contains the reconstructed invariant 4 lepton mass, leading lepton pair mass, and subleading lepton pair mass.
+    Sorts vectors of electrons and muons into a vector of antiparticles for smeared data.
+    @param electron_smear, tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared electrons.
+    @param muon_smear, tuple that contains a vector of TLorentzVectors and a vector of integers. These hold TLorentzVectors and PIDs for the smeared muons.
+    @return a tuple that contains a vector of TLorentzVectors and a vector of particle ID numbers for the smeared antiparticles in the event.
 */
-std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen, std::vector<GenParticle*> all_electrons_seen, std::vector<TLorentzVector> particles, std::vector<TLorentzVector> antiparticles){
-    std::vector<double> output;
+
+std::tuple<std::vector<TLorentzVector>, std::vector<int>> Smeared_Antiparticle_Sorter(std::tuple<std::vector<TLorentzVector>, std::vector<int>> electron_smear, std::tuple<std::vector<TLorentzVector>, std::vector<int>> muon_smear){
+    std::vector<TLorentzVector> electron_smear0;
+    std::vector<int> electron_PID;
+    std::vector<TLorentzVector> muon_smear0;
+    std::vector<int> muon_PID;
+    std::vector<TLorentzVector> antiparticles_smeared;
+    std::vector<int> PIDs;
+
+    electron_smear0 = std::get<0>(electron_smear);
+    electron_PID = std::get<1>(electron_smear);
+    muon_smear0 = std::get<0>(muon_smear);
+    muon_PID = std::get<1>(muon_smear);
+
+    for(int i = 0; i < electron_PID.size(); ++i){
+        if(electron_PID[i] == -11){
+            antiparticles_smeared.push_back(electron_smear0[i]);
+            PIDs.push_back(electron_PID[i]);
+        }
+    }
+
+    for(int i = 0; i < muon_PID.size(); ++i){
+        if(muon_PID[i] == -13){
+            antiparticles_smeared.push_back(muon_smear0[i]);
+            PIDs.push_back(muon_PID[i]);
+        }
+    }
+
+    return make_tuple(antiparticles_smeared, PIDs);
+}
+
+/**
+    Calculates the reconstructed invariant 4 lepton mass, leading lepton pair mass, and subleading lepton pair mass, and determines whether the event is 2e2mu or 2mu2e.
+    @param particles, a tuple that contains a vector of TLorentzVectors and a vector of particle ID numbers for all of the particles in the event that are within the detector requirements.
+    @param antiparticles, a tuple that contains a vector of TLorentzVectors and a vector of particle ID numbers for all of the antiparticles in the event that are within the detector requirements.
+    @return a tuple of doubles and booleans. The doubles are the reconstructed invariant 4 lepton mass, leading lepton pair mass, and subleading lepton pair mass. The booleans refer to whether the event is 2e2mu, or 2mu2e.
+*/
+std::tuple<double, double, double, bool, bool> Mass_Reconstruction(std::tuple<std::vector<TLorentzVector>, std::vector<int>> particles, std::tuple<std::vector<TLorentzVector>, std::vector<int>> antiparticles){
+    //std::tuplevector<double> output;
+    std::tuple<double, double, double, bool, bool> output;
     TLorentzVector reco_Higgs;
     reco_Higgs.SetPtEtaPhiM(0,0,0,0);
-    std::vector<TLorentzVector> recoZ; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
-    std::vector<double> recoZmass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
+    std::vector<TLorentzVector> reco_Z; //makes an array which will contain all Lorentz vectors of reconstructed Z bosons from lepton pairs
+    std::vector<double> reco_Z_mass; //makes an array which will contain all potential reconstructed Z masses from lepton pairs
     std::vector<double> massdiff; //makes an array which will contain the difference between each reconstructed Z mass and the known Z mass
     double Zmass = 91.1876; //actual Z boson mass in GeV
 
+    std::vector<TLorentzVector> particle_vectors;
+    std::vector<TLorentzVector> antiparticle_vectors;
+    std::vector<int> particle_PIDs;
+
+    particle_vectors = std::get<0>(particles);
+    particle_PIDs = std::get<1>(particles);
+    antiparticle_vectors = std::get<0>(antiparticles);
+
     double Z_onshell;
     double Z_offshell;
+    std::vector<int> electrons;
+    std::vector<int> muons;
+    int PID_onshell;
+    bool ev2e2mu = false;
+    bool ev2mu2e = false;
 
-    if(all_electrons_seen.size() == 2 && all_muons_seen.size() == 2){
-        recoZ.push_back(particles[0]+antiparticles[0]);
-        recoZ.push_back(particles[1]+antiparticles[1]);
+    for(int i = 0; i < particle_PIDs.size(); ++i){
+        if(abs(particle_PIDs[i]) == 11){
+            electrons.push_back(particle_PIDs[i]);
+        }
+        if(abs(particle_PIDs[i]) == 13){
+            muons.push_back(particle_PIDs[i]);
+        }
+    }
 
-        for(int j = 0; j < recoZ.size(); ++j){
-            recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
+    if(electrons.size() == 1 && muons.size() == 1){
+        reco_Z.push_back(particle_vectors[0]+antiparticle_vectors[0]);
+        reco_Z.push_back(particle_vectors[1]+antiparticle_vectors[1]);
+
+        for(int j = 0; j < reco_Z.size(); ++j){
+            reco_Z_mass.push_back(reco_Z[j].M()); //we now have a list of all possible reconstructed Z masses
         }
 
-        for(int k = 0; k < recoZmass.size(); ++k){
-            double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
+        for(int k = 0; k < reco_Z_mass.size(); ++k){
+            double diff = abs(reco_Z_mass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
             massdiff.push_back(diff);
         } 
 
         //the on-shell Z boson is the one that is closest to the known Z mass
         //from the lepton pair combinations above, once you know the on-shell Z, you can determine which is the off-shell Z
         double min = massdiff[0];
-        for(int l = 0; l<massdiff.size(); ++l){ //finds the smallest mass difference
-            if(massdiff[l] < min){
-                min = massdiff[l];
+        for(int i = 0; i < massdiff.size(); ++i){ //finds the smallest mass difference
+            if(massdiff[i] < min){
+                min = massdiff[i];
             }
         }
 
         //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
         if(min == massdiff[0]){
-            Z_onshell = recoZmass[0];
-            Z_offshell = recoZmass[1];
+            Z_onshell = reco_Z_mass[0];
+            Z_offshell = reco_Z_mass[1];
+            PID_onshell = particle_PIDs[0];
+            if(Debug) std::cout << "PID 0 = " << particle_PIDs[0] << std::endl;
         }
 
         if(min == massdiff[1]){
-            Z_onshell = recoZmass[1];
-            Z_offshell = recoZmass[0];
+            Z_onshell = reco_Z_mass[1];
+            Z_offshell = reco_Z_mass[0];
+            PID_onshell = particle_PIDs[1];
+            if(Debug) std::cout << "PID 1 = " << particle_PIDs[1] << std::endl;
+        }
+
+        if(PID_onshell == 11){
+            ev2e2mu = true;
+            ev2mu2e = false;
+        } else if(PID_onshell == 13){
+            ev2mu2e = true;
+            ev2e2mu = false;
         }
         
-    } else if(all_electrons_seen.size() == 4 || all_muons_seen.size() == 4){
-        recoZ.push_back(particles[0]+antiparticles[0]);
-        recoZ.push_back(particles[0]+antiparticles[1]);
-        recoZ.push_back(particles[1]+antiparticles[0]);
-        recoZ.push_back(particles[1]+antiparticles[1]);
+    } else if(electrons.size() == 2 || muons.size() == 2){
+        reco_Z.push_back(particle_vectors[0]+antiparticle_vectors[0]);
+        reco_Z.push_back(particle_vectors[0]+antiparticle_vectors[1]);
+        reco_Z.push_back(particle_vectors[1]+antiparticle_vectors[0]);
+        reco_Z.push_back(particle_vectors[1]+antiparticle_vectors[1]);
 
-        for(int j = 0; j < recoZ.size(); ++j){
-            recoZmass.push_back(recoZ[j].M()); //we now have a list of all possible reconstructed Z masses
+        for(int j = 0; j < reco_Z.size(); ++j){
+            reco_Z_mass.push_back(reco_Z[j].M()); //we now have a list of all possible reconstructed Z masses
         }
 
-        for(int k = 0; k < recoZmass.size(); ++k){
-            double diff = abs(recoZmass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
+        for(int k = 0; k < reco_Z_mass.size(); ++k){
+            double diff = abs(reco_Z_mass[k] - Zmass); //creates a list of the difference between the reconstructed Z mass and the known Z mass
             massdiff.push_back(diff);
         } 
 
@@ -1385,29 +1498,33 @@ std::vector<double> Mass_Reconstruction(std::vector<GenParticle*> all_muons_seen
 
         //these statements are all defining the on-shell and off-shell Z bosons based on the lepton pairings
         if(min == massdiff[0]){
-            Z_onshell = recoZmass[0];
-            Z_offshell = recoZmass[3];
+            Z_onshell = reco_Z_mass[0];
+            Z_offshell = reco_Z_mass[3];
         }
 
         if(min == massdiff[1]){
-            Z_onshell = recoZmass[1];
-            Z_offshell = recoZmass[2];
+            Z_onshell = reco_Z_mass[1];
+            Z_offshell = reco_Z_mass[2];
         }
 
         if(min == massdiff[2]){
-            Z_onshell = recoZmass[2];
-            Z_offshell = recoZmass[1];
+            Z_onshell = reco_Z_mass[2];
+            Z_offshell = reco_Z_mass[1];
         }
 
         if(min == massdiff[3]){
-            Z_onshell = recoZmass[3];
-            Z_offshell = recoZmass[0];
+            Z_onshell = reco_Z_mass[3];
+            Z_offshell = reco_Z_mass[0];
         }
-
     }
 
-    reco_Higgs = particles[0] + particles[1] + antiparticles[0] + antiparticles[1];
+    reco_Higgs = particle_vectors[0] + particle_vectors[1] + antiparticle_vectors[0] + antiparticle_vectors[1];
 
-    output = {reco_Higgs.M(), Z_onshell, Z_offshell};
+    if(Debug){
+        std::cout << "ev2e2mu = " << ev2e2mu << std::endl;
+        std::cout << "ev2mu2e = " << ev2mu2e << std::endl;
+    }
+
+    output = {reco_Higgs.M(), Z_onshell, Z_offshell, ev2e2mu, ev2mu2e};
     return output;
 }
