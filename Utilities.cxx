@@ -5,10 +5,10 @@
 //------------------------------------
 double pT_min = 5; //in GeV, used for the jets and leptons
 double eta_min_j = -5.0; //eta range of the hadronic calorimeter, used for the jets
-double eta_max_j = 5.5;
+double eta_max_j = 5.6;
 double eta_min_mu = -4.6; //eta range of the inner tracker, used for the muons
 double eta_max_mu = 5.3;
-double eta_min_e = -5.0; //eta range of the electromagnetic calorimeter, used for the electrons
+double eta_min_e = -4.8; //eta range of the electromagnetic calorimeter, used for the electrons
 double eta_max_e = 5.5;
 
 //------------------------------------

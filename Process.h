@@ -185,6 +185,19 @@ std::vector<TH1D*> h_Z_cuts;
 TH1D * h_Higgs_reco_smeared;
 TH1D * h_Z_reco_smeared;
 TH1D * h_Zstar_reco_smeared;
+TH1D * h_Higgs_reco_4mu;
+TH1D * h_Higgs_reco_4e;
+TH1D * h_Higgs_reco_2mu2e;
+TH1D * h_Higgs_reco_2e2mu;
+
+TH1D * h_Jet_eta_smeared;
+TH1D * h_Higgs_eta_smeared;
+TH1D * h_nu_eta_smeared;
+
+TH2D * h_energy_resolution;
+
+std::vector<double> electron_energy;
+std::vector<double> energy_resolution;
 
 //----------------------------------------------------------
 // Declaring Functions

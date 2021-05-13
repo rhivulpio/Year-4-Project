@@ -43,6 +43,10 @@ void SignalBkgd(){
     smeared_histograms.push_back("Smearing/h_Higgs_reco_smeared");
     smeared_histograms.push_back("Smearing/h_Z_reco_smeared");
     smeared_histograms.push_back("Smearing/h_Zstar_reco_smeared");
+    smeared_histograms.push_back("Smearing/h_Higgs_reco_4mu");
+    smeared_histograms.push_back("Smearing/h_Higgs_reco_4e");
+    smeared_histograms.push_back("Smearing/h_Higgs_reco_2e2mu");
+    smeared_histograms.push_back("Smearing/h_Higgs_reco_2mu2e");
 
     TH1D * h_signal_data;
     TH1D * h_bkgd_data;
@@ -91,6 +95,7 @@ void SignalBkgd(){
     //----------------------------------------------------
     //Plotting Stacked Mass Reconstruction
     //----------------------------------------------------
+    
     hstack(smeared_histograms[0]);
 
     OutputFile -> Close();
@@ -156,7 +161,12 @@ void Significance_Plots(TString property, TString units, int n_cuts, double min_
 //Plotting Stacked Mass Reconstruction
 //--------------------------------------------------------------------
 TCanvas * hstack(TString histogram) {
-    THStack * hs = new THStack("hs", "Stacked Mass Reconstruction");
+    
+    THStack * hs;
+    TCanvas * cst;
+    
+    hs = new THStack("hs", "Stacked Mass Reconstruction");
+    cst = new TCanvas("cst", "Stacked Mass Reconstruction", 50, 50, 1000, 750);
     
     TH1D * h2 = (TH1D*) bkgd_file -> Get(histogram); 
     h2->SetFillColor(29);
@@ -173,7 +183,9 @@ TCanvas * hstack(TString histogram) {
     h1->SetLineColor(1);
     hs->Add(h1);
 
-    TCanvas * cst = new TCanvas("cst", "Stacked Mass Reconstruction", 50, 50, 1000, 750);
+    double histmax = h1 -> GetMaximum();
+    h1 -> SetAxisRange(0, histmax*1.1, "Y");
+
     TH1 * last_stack = (TH1*)hs->GetStack()->Last();
     last_stack->SetFillColor(38);
     last_stack->SetLineColor(1);
@@ -181,7 +193,7 @@ TCanvas * hstack(TString histogram) {
     last_stack->Draw("SAME E1");
 
     hs->GetXaxis()->SetTitle("m_{4l} (GeV)");
-    hs->GetYaxis()->SetTitle("Number of Events");
+    hs->GetYaxis()->SetTitle("Events / 1.25 GeV");
 
     TLegend * legend2;
     legend2 = new TLegend(0.1, 0.7, 0.3, 0.9);
@@ -190,18 +202,18 @@ TCanvas * hstack(TString histogram) {
     legend2->AddEntry(h3, "Z -> 4l Background");
     legend2->Draw("same");
 
-    int min_signal = h1 -> FindBin(123);
-    int max_signal = h1 -> FindBin(127);
+    int min_signal = h1 -> FindBin(110);
+    int max_signal = h1 -> FindBin(140);
     double signal_data = h1 -> Integral(min_signal, max_signal);
     std::cout << " signal counts between 123 and 127: " << signal_data << std::endl;
 
-    int min_bkgd = h2 -> FindBin(123);
-    int max_bkgd = h2 -> FindBin(127);
+    int min_bkgd = h2 -> FindBin(110);
+    int max_bkgd = h2 -> FindBin(140);
     double bkgd_data = h2 -> Integral(min_bkgd, max_bkgd);
     std::cout << " bkgd counts between 123 and 127: " << bkgd_data << std::endl;
 
-    int min_bkgd_two = h3 -> FindBin(123);
-    int max_bkgd_two = h3 -> FindBin(127);
+    int min_bkgd_two = h3 -> FindBin(110);
+    int max_bkgd_two = h3 -> FindBin(140);
     double bkgd_data_two = h3 -> Integral(min_bkgd_two, max_bkgd_two);
     std::cout << " bkgd two counts between 123 and 127: " << bkgd_data_two << std::endl;
 
