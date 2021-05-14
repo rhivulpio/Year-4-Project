@@ -4,7 +4,7 @@ This is a Year 4 MSCi Particle Physics Project in which a statistical analysis o
 
 It was determined that the focus for this project would be the H->ZZ*->4l (l=e or mu) decay mode; these are the events that you will find in the signal input file.
 
-In this repository you will find my ROOT/C++ analysis which was used to verify the validity of the Monte Carlo simulated data, and then plot the reconstructed invariant 4 lepton mass. Following this, a statistical analysis was conducted in order to obtain the final numerical result. It was found that, based on this simulated data of the LHeC, and at the integrated luminosity goal of 1000fb^{-1}, the Higgs boson mass can be measured with a precision of 1.06GeV.
+In this repository you will find my ROOT/C++ analysis which was used to verify the validity of the Monte Carlo simulated data, and then plot the reconstructed invariant 4 lepton mass. Following this, a statistical analysis was conducted in order to obtain the final numerical result. It was found that, based on this simulated data of the LHeC, and at the integrated luminosity goal of 1 ab^{-1}, the Higgs boson mass can be measured with a precision of 1.69 ± 0.32 GeV.
 
 # Explanation of the contents of this repository
 
